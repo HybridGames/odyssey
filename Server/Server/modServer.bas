@@ -35,17 +35,18 @@ Sub SaveFlags()
     DataRS!flags = St
     DataRS.Update
 End Sub
+
 Sub SaveObjects()
-    Dim A As Long, B As Long, St As String
-    For A = 1 To MaxMaps
-        With Map(A)
+    Dim MapIndex As Long, B As Long, St As String
+    For MapIndex = 1 To MaxMaps
+        With Map(MapIndex)
             If .Keep = True Then
                 For B = 0 To MaxMapObjects
                     With .Object(B)
                         If .Object > 0 Then
                             If .Value >= 0 Then
-                                If Map(A).Tile(.X, .Y).Att = 5 Or Map(A).Tile(.X, .Y).Att2 = 5 Then
-                                    St = St + DoubleChar(A) + Chr$(B) + Chr$(.X) + Chr$(.Y) + DoubleChar$(.Object) + QuadChar(.Value) + Chr$(.ItemPrefix) + Chr$(.ItemSuffix)
+                                If Map(MapIndex).Tile(.X, .Y).Att = 5 Or Map(MapIndex).Tile(.X, .Y).Att2 = 5 Then
+                                    St = St + DoubleChar(MapIndex) + Chr$(B) + Chr$(.X) + Chr$(.Y) + DoubleChar$(.Object) + QuadChar(.Value) + Chr$(.ItemPrefix) + Chr$(.ItemSuffix)
                                 End If
                             End If
                         End If
@@ -53,7 +54,7 @@ Sub SaveObjects()
                 Next B
             End If
         End With
-    Next A
+    Next MapIndex
     DataRS.Edit
     DataRS!ObjectData = St
     DataRS.Update
@@ -61,6 +62,7 @@ End Sub
 
 Sub CheckGuild(Index As Long)
     If Guild(Index).Name <> vbNullString Then
+        '@TODO Should we make this configurable?
         If CountGuildMembers(Index) < 3 Then
             'Not enough players -- delete guild
             DeleteGuild Index, 1
@@ -69,52 +71,56 @@ Sub CheckGuild(Index As Long)
 End Sub
 
 Function CheckSum(St As String) As Long
-    Dim A As Long, B As Long
+    Dim A As Long, Sum As Long
     For A = 1 To Len(St)
-        B = B + Asc(Mid$(St, A, 1))
+        Sum = Sum + Asc(Mid$(St, A, 1))
     Next A
-    CheckSum = B
+    CheckSum = Sum
 End Function
+
 Function CountGuildMembers(Index As Long) As Long
-    Dim A As Long, B As Long
+    Dim A As Long, Count As Long
     With Guild(Index)
         If .Name <> vbNullString Then
-            B = 0
+            Count = 0
             For A = 0 To 19
                 If .Member(A).Name <> vbNullString Then
-                    B = B + 1
+                    Count = Count + 1
                 End If
             Next A
-            CountGuildMembers = B
+            CountGuildMembers = Count
         End If
     End With
 End Function
 
 Sub DeleteCharacter()
-    Dim A As Long, B As Long, St As String
+    '@todo Looks like it deletes a character from a guild
+    Dim GuildIndex As Long, MemberIndex As Long, Name As String
     On Error Resume Next
 
-    St = UserRS!Name
-    For A = 1 To MaxGuilds
-        With Guild(A)
+    Name = UserRS!Name
+    For GuildIndex = 1 To MaxGuilds
+        With Guild(GuildIndex)
             If .Name <> vbNullString Then
-                For B = 0 To 19
-                    With .Member(B)
-                        If .Name = St Then
+                For MemberIndex = 0 To 19
+                    With .Member(MemberIndex)
+                        If .Name = Name Then
                             .Name = vbNullString
-                            CheckGuild A
+                            CheckGuild GuildIndex
                         End If
                     End With
-                Next B
+                Next MemberIndex
             End If
         End With
-    Next A
+    Next GuildIndex
 
     On Error GoTo 0
 End Sub
+
 Sub DeleteAccount()
     On Error Resume Next
 
+    '@todo why is Class used as a flag?
     If UserRS!Class > 0 Then
         DeleteCharacter
     End If
@@ -123,118 +129,170 @@ Sub DeleteAccount()
 
     On Error GoTo 0
 End Sub
+
 Sub LoadObjectData(ObjectData As String)
-    Dim A As Long, NumObjects As Long
+    Dim ObjIndex As Long, NumObjects As Long
     NumObjects = Len(ObjectData) / 13 - 1
-    For A = 0 To NumObjects
-        With Map(Asc(Mid$(ObjectData, A * 13 + 1, 1)) * 256 + Asc(Mid$(ObjectData, A * 13 + 2, 1))).Object(Asc(Mid$(ObjectData, A * 13 + 3, 1)))
-            .X = Asc(Mid$(ObjectData, A * 13 + 4, 1))
-            .Y = Asc(Mid$(ObjectData, A * 13 + 5, 1))
-            .Object = GetInt(Mid$(ObjectData, A * 13 + 6, 2))
-            .Value = Asc(Mid$(ObjectData, A * 13 + 8, 1)) * 16777216 + Asc(Mid$(ObjectData, A * 13 + 9, 1)) * 65536 + Asc(Mid$(ObjectData, A * 13 + 10, 1)) * 256& + Asc(Mid$(ObjectData, A * 13 + 11, 1))
-            .ItemPrefix = Asc(Mid$(ObjectData, A * 13 + 12, 1))
-            .ItemSuffix = Asc(Mid$(ObjectData, A * 13 + 13, 1))
+    
+    'Looks like ObjectData is a string of Bytes
+    'Every 13 characters (bytes) is a full object
+    '[1] * 256 + [2] = Map Number
+    '[3] = Index of Object on Map Map.Object(#)
+    '[4] = X
+    '[5] = Y
+    '[6][7] = Object Number
+    '[8] * 16777216 + [9] * 65536 + [10] * 256 + [11] = Value
+    '[12] = Prefix Number
+    '[13] = Suffix Number
+    
+    '@todo Could you use GetInt() for [1][2] like is done for [6][7]?
+    'GetInt(Mid$(ObjectData, ObjIndex * 13 + 1, 2))
+    
+    For ObjIndex = 0 To NumObjects
+        With Map(Asc(Mid$(ObjectData, ObjIndex * 13 + 1, 1)) * 256 + Asc(Mid$(ObjectData, ObjIndex * 13 + 2, 1))).Object(Asc(Mid$(ObjectData, ObjIndex * 13 + 3, 1)))
+            .X = Asc(Mid$(ObjectData, ObjIndex * 13 + 4, 1))
+            .Y = Asc(Mid$(ObjectData, ObjIndex * 13 + 5, 1))
+            .Object = GetInt(Mid$(ObjectData, ObjIndex * 13 + 6, 2))
+            .Value = Asc(Mid$(ObjectData, ObjIndex * 13 + 8, 1)) * 16777216 + Asc(Mid$(ObjectData, ObjIndex * 13 + 9, 1)) * 65536 + Asc(Mid$(ObjectData, ObjIndex * 13 + 10, 1)) * 256& + Asc(Mid$(ObjectData, ObjIndex * 13 + 11, 1))
+            .ItemPrefix = Asc(Mid$(ObjectData, ObjIndex * 13 + 12, 1))
+            .ItemSuffix = Asc(Mid$(ObjectData, ObjIndex * 13 + 13, 1))
         End With
-    Next A
+    Next ObjIndex
 End Sub
+
+'Finds the number of an NPC by name
 Function NPCNum(ByVal Name As String) As Long
     Name = UCase$(Name)
-    Dim A As Long
-    For A = 1 To MaxNPCs
-        With NPC(A)
+    Dim NpcIndex As Long
+    For NpcIndex = 1 To MaxNPCs
+        With NPC(NpcIndex)
             If UCase$(.Name) = Name Then
-                NPCNum = A
+                NPCNum = NpcIndex
                 Exit Function
             End If
         End With
-    Next A
+    Next NpcIndex
 End Function
 
+'Finds an object in the player's inventory
+'Returns the Inventory Index if it's found
+'Returns Nothing (Integer 0) if it's not found
 Function FindInvObject(Index As Long, ObjectNum As Long) As Long
-    Dim A As Long
+    Dim InvIndex As Long
     With Player(Index)
-        For A = 1 To 20
-            If .Inv(A).Object = ObjectNum Then
-                FindInvObject = A
+        For InvIndex = 1 To 20
+            If .Inv(InvIndex).Object = ObjectNum Then
+                FindInvObject = InvIndex
                 Exit Function
             End If
-        Next A
+        Next InvIndex
     End With
+    
+    'Explicitly set it to 0
+    FindInvObject = 0
 End Function
 
+'Finds a Player by Name
+'Returns the Player's Index if found
+'Returns 0 if not found
 Function FindPlayer(ByVal Name As String) As Long
     Name = UCase$(Name)
-    Dim A As Long
-    For A = 1 To MaxUsers
-        With Player(A)
+    Dim PlayerIndex As Long
+    For PlayerIndex = 1 To MaxUsers
+        With Player(PlayerIndex)
             If .InUse = True Then
                 If UCase$(.Name) = Name Then
-                    FindPlayer = A
+                    FindPlayer = PlayerIndex
                     Exit Function
                 End If
             End If
         End With
-    Next A
+    Next PlayerIndex
+    
+    'Explicitly set it to 0
+    FindPlayer = 0
 End Function
 
+'Finds a free Ban Index
+'Returns the first not InUse index
+'Currently Returns 0 if none are free
 Function FreeBanNum() As Long
-    Dim A As Long
-    For A = 1 To 50
-        If Ban(A).InUse = False Then
-            FreeBanNum = A
+    Dim BanIndex As Long
+    For BanIndex = 1 To 50 '@todo 50, kinda generous?
+        If Ban(BanIndex).InUse = False Then
+            FreeBanNum = BanIndex
             Exit For
         End If
-    Next A
+    Next BanIndex
+    
+    '@todo What happens when there are no free ban indexes?
 End Function
-Function FreeInvNum(Index As Long) As Long
-    Dim A As Long
-    With Player(Index)
-        For A = 1 To 20
-            If .Inv(A).Object = 0 Then
-                FreeInvNum = A
+
+'Finds a free Invnetory slot for the given player
+'Returns the first free inventory slot
+'Returns 0 if none are free
+Function FreeInvNum(PlayerIndex As Long) As Long
+    Dim InvIndex As Long
+    With Player(PlayerIndex)
+        For InvIndex = 1 To 20
+            If .Inv(InvIndex).Object = 0 Then
+                FreeInvNum = InvIndex
                 Exit Function
             End If
-        Next A
+        Next InvIndex
     End With
+    
+    'Explicitly set it to 0
+    FreeInvNum = 0
 End Function
+
+'@todo Need to figure out how this is used
 Function FreeMapDoorNum(MapNum As Long) As Long
     Dim A As Long
     With Map(MapNum)
-        For A = 0 To 9
+        For A = 0 To 9 '@todo are there really only 10 possible doors?
             If .Door(A).Att = 0 Then
                 FreeMapDoorNum = A
                 Exit Function
             End If
         Next A
     End With
-    FreeMapDoorNum = -1
+    FreeMapDoorNum = -1 '@todo other functions are returning 0
 End Function
+
+'Finds a free index for an object on a map
+'Returns first available index or -1 if none available
 Function FreeMapObj(MapNum As Long) As Long
-    Dim A As Long
+    Dim MapObjIndex As Long
     If MapNum >= 1 Then
         With Map(MapNum)
-            For A = 0 To MaxMapObjects
-                If .Object(A).Object = 0 Then
-                    .Object(A).Value = 0
-                    .Object(A).ItemPrefix = 0
-                    .Object(A).ItemSuffix = 0
-                    FreeMapObj = A
+            For MapObjIndex = 0 To MaxMapObjects
+                If .Object(MapObjIndex).Object = 0 Then
+                    '@todo Do we have a problem with values not being zeroed properly somewhere else?
+                    .Object(MapObjIndex).Value = 0
+                    .Object(MapObjIndex).ItemPrefix = 0
+                    .Object(MapObjIndex).ItemSuffix = 0
+                    FreeMapObj = MapObjIndex
                     Exit Function
                 End If
-            Next A
+            Next MapObjIndex
         End With
     End If
     FreeMapObj = -1
 End Function
+
+'Finds a free Player Index
 Function FreePlayer() As Long
-    Dim A As Long
-    For A = 1 To MaxUsers
-        If Player(A).InUse = False Then
-            FreePlayer = A
+    Dim PlayerIndex As Long
+    For PlayerIndex = 1 To MaxUsers
+        If Player(PlayerIndex).InUse = False Then
+            FreePlayer = PlayerIndex
             Exit Function
         End If
-    Next A
+    Next PlayerIndex
 End Function
+
+'Grants a Player Experience
 Sub GainExp(Index As Long, Exp As Long)
     With Player(Index)
         If .Level < 80 Then
@@ -245,6 +303,8 @@ Sub GainExp(Index As Long, Exp As Long)
             End If
             'Floating text
             SendToMap .Map, Chr$(112) + Chr$(13) + Chr$(.X) + Chr$(.Y) + CStr(Exp)
+            
+            '@todo Should we possibly have the level up decision scriptable?
             If .Experience >= Int(1000 * CLng(.Level) ^ 1.3) Then
                 If .Level < World.MaxLevel Then
 
@@ -260,6 +320,8 @@ Sub GainExp(Index As Long, Exp As Long)
     End With
 End Sub
 
+'Grants a player experience
+'@todo only difference between this and GainExp seems to be the World.MaxLevel
 Sub GainEliteExp(Index As Long, Exp As Long)
     With Player(Index)
         If .Level < World.MaxLevel Then
@@ -285,20 +347,29 @@ Sub GainEliteExp(Index As Long, Exp As Long)
     End With
 End Sub
 
+'Finds a Guild Number by Name
 Function GuildNum(ByVal Name As String) As Long
     Name = UCase$(Name)
-    Dim A As Long
-    For A = 1 To MaxGuilds
-        With Guild(A)
+    Dim GuildIndex As Long
+    For GuildIndex = 1 To MaxGuilds
+        With Guild(GuildIndex)
             If UCase$(.Name) = Name Then
-                GuildNum = A
+                GuildNum = GuildIndex
                 Exit Function
             End If
         End With
-    Next A
+    Next GuildIndex
+    
+    GuildNum = 0
 End Function
+
+'Determines if a tile is vacant or not
+'@todo used for Monster Movement?
 Function IsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
-    Dim A As Long
+    Dim MonsterIndex As Long, UserIndex
+
+    'Explicitly set, any Exit Function means the spot isn't vacant
+    IsVacant = False
 
     If X < 0 Or Y < 0 Or X > 11 Or Y > 11 Then Exit Function
 
@@ -306,6 +377,7 @@ Function IsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
         Select Case .Tile(X, Y).Att
         Case 1, 2, 3, 10, 13, 14, 15, 16    'Wall / Warp / Door / No Monsters
             Exit Function
+        '@todo I'm assuming the ExamineBit determines if the Light attribute has a "wall" option
         Case 19    'Light
             If ExamineBit(.Tile(X, Y).AttData(2), 0) Then
                 Exit Function
@@ -320,8 +392,8 @@ Function IsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
             Exit Function
         End Select
 
-        For A = 0 To MaxMonsters
-            With .Monster(A)
+        For MonsterIndex = 0 To MaxMonsters
+            With .Monster(MonsterIndex)
                 If .Monster > 0 Then
                     If .X = X Then
                         If .Y = Y Then
@@ -330,10 +402,10 @@ Function IsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
                     End If
                 End If
             End With
-        Next A
+        Next MonsterIndex
 
-        For A = 1 To MaxUsers
-            With Player(A)
+        For UserIndex = 1 To MaxUsers
+            With Player(UserIndex)
                 If .Map = MapNum Then
                     If .X = X Then
                         If .Y = Y Then
@@ -344,11 +416,13 @@ Function IsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
                     End If
                 End If
             End With
-        Next A
+        Next UserIndex
     End With
 
     IsVacant = True
 End Function
+
+'Determines if a tile is Vacant for a player
 Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
     Dim A As Long
 
@@ -391,6 +465,7 @@ Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
                                 If .IsDead = False Then
                                     If .Guild > 0 Then
                                         If Player(A).Guild = 0 Then
+                                            '@todo Should comment what these bits mean
                                             If ExamineBit(Map(.Map).flags, 0) = False And ExamineBit(Map(.Map).flags, 6) = False Then
 
                                             Else
