@@ -23,14 +23,14 @@ Public OutdoorLight As Byte
 Public ListeningSocket As Long
 
 Sub SaveFlags()
-    Dim A As Long, St As String
-    For A = 0 To 255
-        If World.Flag(A) > 0 Then
-            St = St + QuadChar$(World.Flag(A))
+    Dim FlagIndex As Long, St As String
+    For FlagIndex = 0 To 255
+        If World.Flag(FlagIndex) > 0 Then
+            St = St + QuadChar$(World.Flag(FlagIndex))
         Else
             St = St + QuadChar$(0)
         End If
-    Next A
+    Next FlagIndex
     DataRS.Edit
     DataRS!flags = St
     DataRS.Update
@@ -488,6 +488,8 @@ Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
 
     PlayerIsVacant = True
 End Function
+
+'Called when a player Joins the Game
 Sub JoinGame(Index As Long)
     Dim A As Long, St1 As String, Tick As Currency
     
