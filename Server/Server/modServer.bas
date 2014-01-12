@@ -327,28 +327,8 @@ End Sub
 'Grants a player experience
 '@todo only difference between this and GainExp seems to be the World.MaxLevel
 Sub GainEliteExp(Index As Long, Exp As Long)
-    With Player(Index)
-        If .Level < World.MaxLevel Then
-            If CDbl(.Experience) + CDbl(Exp) > 2147483647# Then
-                .Experience = 2147483647
-            Else
-                .Experience = .Experience + Exp
-            End If
-            'Floating text
-            SendToMap .Map, Chr$(112) + Chr$(13) + Chr$(.X) + Chr$(.Y) + CStr(Exp)
-            If .Experience >= Int(1000 * CLng(.Level) ^ 1.3) Then
-                If .Level < World.MaxLevel Then
-
-                    .Level = .Level + 1
-                    .Experience = 0
-
-                    CalculateStats Index
-
-                    SendSocket Index, Chr$(59) + Chr$(.MaxHP) + Chr$(.MaxEnergy) + Chr$(.MaxMana)
-                End If
-            End If
-        End If
-    End With
+    GainExp Index, Exp
+    Exit Sub
 End Sub
 
 'Finds a Guild Number by Name

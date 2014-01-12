@@ -17,5 +17,5 @@ modLogging = 20, 34, 635, 440, C
 modLists = 66, 87, 662, 543, C
 modConstants = 110, 145, 938, 625, 
 modAPI = 44, 58, 679, 402, 
-modMonsters = 66, 87, 667, 475, C
+modMonsters = 66, 87, 667, 475, 
 modClasses = 110, 145, 748, 513, 

@@ -1,5 +1,5 @@
 modWinsock = 0, 0, 0, 0, C
-modOdyssey = 176, 176, 1473, 924, Z
+modOdyssey = 176, 176, 1473, 924, 
 frmAccount = 0, 0, 0, 0, C, 0, 0, 0, 0, C
 frmWait = 0, 0, 0, 0, C, 0, 0, 0, 0, C
 frmNewCharacter = 242, 242, 1539, 990, , 0, 0, 0, 0, C
@@ -21,7 +21,7 @@ frmMain = 0, 0, 0, 0, C, 0, 0, 0, 0, C
 frmOptions = 286, 286, 1583, 1034, , 0, 0, 0, 0, C
 frmCredits = 0, 0, 0, 0, C, 0, 0, 0, 0, C
 frmNewGuild = 0, 0, 0, 0, C, 0, 0, 0, 0, C
-frmMonster = 308, 308, 1605, 1056, , 0, 0, 0, 0, C
+frmMonster = 698, 52, 1324, 800, , 22, 22, 1076, 694, C
 modCompress = 330, 330, 1627, 1078, 
 modSecurity = 198, 198, 1495, 946, 
 modSkills = 0, 0, 0, 0, C
