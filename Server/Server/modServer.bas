@@ -22,6 +22,7 @@ Public OutdoorLight As Byte
 'Sockets
 Public ListeningSocket As Long
 
+'Writes World Flags to the database
 Sub SaveFlags()
     Dim FlagIndex As Long, St As String
     For FlagIndex = 0 To 255
@@ -78,21 +79,23 @@ Function CheckSum(St As String) As Long
     CheckSum = Sum
 End Function
 
+'How many members are in a guild
 Function CountGuildMembers(Index As Long) As Long
-    Dim A As Long, Count As Long
+    Dim MemberIndex As Long, Count As Long
     With Guild(Index)
         If .Name <> vbNullString Then
             Count = 0
-            For A = 0 To 19
-                If .Member(A).Name <> vbNullString Then
+            For MemberIndex = 0 To 19 '@todo Do we want to make Guild Max Members configurable?
+                If .Member(MemberIndex).Name <> vbNullString Then
                     Count = Count + 1
                 End If
-            Next A
+            Next MemberIndex
             CountGuildMembers = Count
         End If
     End With
 End Function
 
+'Delets a character's information, Character is separate from Account
 Sub DeleteCharacter()
     '@todo Looks like it deletes a character from a guild
     Dim GuildIndex As Long, MemberIndex As Long, Name As String
@@ -117,6 +120,7 @@ Sub DeleteCharacter()
     On Error GoTo 0
 End Sub
 
+'Removes a User's account
 Sub DeleteAccount()
     On Error Resume Next
 
@@ -424,7 +428,7 @@ End Function
 
 'Determines if a tile is Vacant for a player
 Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
-    Dim A As Long
+    Dim MonsterIndex As Long, PlayerIndex As Long
 
     With Map(MapNum)
         Select Case .Tile(X, Y).Att
@@ -444,8 +448,8 @@ Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
             Exit Function
         End Select
 
-        For A = 0 To MaxMonsters
-            With .Monster(A)
+        For MonsterIndex = 0 To MaxMonsters
+            With .Monster(MonsterIndex)
                 If .Monster > 0 Then
                     If .X = X Then
                         If .Y = Y Then
@@ -454,17 +458,17 @@ Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
                     End If
                 End If
             End With
-        Next A
+        Next MonsterIndex
 
-        For A = 1 To MaxUsers
-            With Player(A)
+        For PlayerIndex = 1 To MaxUsers
+            With Player(PlayerIndex)
                 If .Map = MapNum Then
                     If .X = X Then
                         If .Y = Y Then
                             If Not .Status = 25 Then
                                 If .IsDead = False Then
-                                    If .Guild > 0 Then
-                                        If Player(A).Guild = 0 Then
+                                    If .Guild > 0 Then '@todo These if blocks look redundant
+                                        If Player(PlayerIndex).Guild = 0 Then
                                             '@todo Should comment what these bits mean
                                             If ExamineBit(Map(.Map).flags, 0) = False And ExamineBit(Map(.Map).flags, 6) = False Then
 
@@ -483,7 +487,7 @@ Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
                     End If
                 End If
             End With
-        Next A
+        Next PlayerIndex
     End With
 
     PlayerIsVacant = True
@@ -491,7 +495,8 @@ End Function
 
 'Called when a player Joins the Game
 Sub JoinGame(Index As Long)
-    Dim A As Long, St1 As String, Tick As Currency
+    Dim St1 As String, Tick As Currency
+    Dim MapIndex As Long, UserIndex As Long, InvIndex As Long, EqIndex As Long, DecIndex As Long
     
     Tick = getTime()
 
@@ -503,6 +508,8 @@ Sub JoinGame(Index As Long)
             Exit Sub
         End If
         .Mode = modePlaying
+        
+        'Is this redundant with the Loop below?
         SendAllBut Index, Chr$(6) + Chr$(Index) + DoubleChar$(CLng(.Sprite)) + Chr$(.Status) + Chr$(.Guild) + Chr$(.MaxHP) + .Name
         SendToGods Chr$(16) + Chr$(0) + .User + " - " + .IP
         
@@ -511,12 +518,12 @@ Sub JoinGame(Index As Long)
         
         St1 = DoubleChar(1) + Chr$(24)
 
-        A = .Map
-        If Map(A).BootLocation.Map > 0 Then
+        MapIndex = .Map
+        If Map(MapIndex).BootLocation.Map > 0 Then
             'Move player if not allowed to join on this map
-            .Map = Map(A).BootLocation.Map
-            .X = Map(A).BootLocation.X
-            .Y = Map(A).BootLocation.Y
+            .Map = Map(MapIndex).BootLocation.Map
+            .X = Map(MapIndex).BootLocation.X
+            .Y = Map(MapIndex).BootLocation.Y
         End If
 
         If .Map < 1 Then .Map = 1
@@ -525,11 +532,12 @@ Sub JoinGame(Index As Long)
         If .Y > 11 Then .Y = 11
 
         'Send Player Data
-        For A = 1 To MaxUsers
-            If A <> Index Then
-                With Player(A)
+        '@todo Is this redundant with the SendAllBut call above
+        For UserIndex = 1 To MaxUsers
+            If UserIndex <> Index Then
+                With Player(UserIndex)
                     If .Mode = modePlaying Then
-                        St1 = St1 + DoubleChar(7 + Len(.Name)) + Chr$(6) + Chr$(A) + DoubleChar$(CLng(.Sprite)) + Chr$(.Status) + Chr$(.Guild) + Chr$(.MaxHP) + .Name
+                        St1 = St1 + DoubleChar(7 + Len(.Name)) + Chr$(6) + Chr$(UserIndex) + DoubleChar$(CLng(.Sprite)) + Chr$(.Status) + Chr$(.Guild) + Chr$(.MaxHP) + .Name
                         If Len(St1) > 1024 Then
                             SendRaw Index, St1
                             St1 = vbNullString
@@ -537,26 +545,26 @@ Sub JoinGame(Index As Long)
                     End If
                 End With
             End If
-        Next A
+        Next UserIndex
 
         'Send Inventory Data
-        For A = 1 To 20
-            If .Inv(A).Object > 0 Then
-                St1 = St1 + DoubleChar$(10) + Chr$(17) + Chr$(A) + DoubleChar$(CLng(.Inv(A).Object)) + QuadChar(.Inv(A).Value) + Chr$(.Inv(A).ItemPrefix) + Chr$(.Inv(A).ItemSuffix)
+        For InvIndex = 1 To 20
+            If .Inv(InvIndex).Object > 0 Then
+                St1 = St1 + DoubleChar$(10) + Chr$(17) + Chr$(InvIndex) + DoubleChar$(CLng(.Inv(InvIndex).Object)) + QuadChar(.Inv(InvIndex).Value) + Chr$(.Inv(InvIndex).ItemPrefix) + Chr$(.Inv(InvIndex).ItemSuffix)
                 If Len(St1) > 1024 Then
                     SendRaw Index, St1
                     St1 = vbNullString
                 End If
             End If
-        Next A
+        Next InvIndex
 
         If .EquippedObject(6).Object > 0 Then St1 = St1 + DoubleChar(2) + Chr$(19) + Chr$(.EquippedObject(6).Object)
 
-        For A = 1 To 5
-            If .EquippedObject(A).Object > 0 Then
-                St1 = St1 + DoubleChar(9) + Chr$(115) + DoubleChar$(CLng(.EquippedObject(A).Object)) + QuadChar(.EquippedObject(A).Value) + Chr$(.EquippedObject(A).ItemPrefix) + Chr$(.EquippedObject(A).ItemSuffix)
+        For EqIndex = 1 To 5
+            If .EquippedObject(EqIndex).Object > 0 Then
+                St1 = St1 + DoubleChar(9) + Chr$(115) + DoubleChar$(CLng(.EquippedObject(EqIndex).Object)) + QuadChar(.EquippedObject(EqIndex).Value) + Chr$(.EquippedObject(EqIndex).ItemPrefix) + Chr$(.EquippedObject(EqIndex).ItemSuffix)
             End If
-        Next A
+        Next EqIndex
 
         If Len(St1) > 0 Then
             SendRaw Index, St1
@@ -566,6 +574,7 @@ Sub JoinGame(Index As Long)
 
         JoinMap Index
 
+        '@script
         Parameter(0) = Index
         RunScript "JOINGAME"
 
@@ -575,11 +584,11 @@ Sub JoinGame(Index As Long)
         If .Guild > 0 Then
             St1 = vbNullString
             With Guild(.Guild)
-                For A = 0 To DeclarationCount
-                    With .Declaration(A)
-                        St1 = St1 + DoubleChar(4) + Chr$(71) + Chr$(A) + Chr$(.Guild) + Chr$(.Type)
+                For DecIndex = 0 To DeclarationCount
+                    With .Declaration(DecIndex)
+                        St1 = St1 + DoubleChar(4) + Chr$(71) + Chr$(DecIndex) + Chr$(.Guild) + Chr$(.Type)
                     End With
-                Next A
+                Next DecIndex
 
                 If .Bank >= 0 Then
                     St1 = St1 + DoubleChar(9) + Chr$(152) + QuadChar(.Bank) + QuadChar$(GetGuildUpkeep(CLng(Player(Index).Guild)))
@@ -600,6 +609,7 @@ Sub JoinGame(Index As Long)
     End With
 End Sub
 
+'Called when a player joins a map
 Sub JoinMap(Index As Long)
     Dim A As Long, MapNum As Long, St1 As String, Tick As Currency
 

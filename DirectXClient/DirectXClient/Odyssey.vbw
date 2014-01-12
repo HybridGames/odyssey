@@ -1,5 +1,5 @@
 modWinsock = 0, 0, 0, 0, C
-modOdyssey = 176, 176, 1473, 924, 
+modOdyssey = 176, 176, 1473, 924, Z
 frmAccount = 0, 0, 0, 0, C, 0, 0, 0, 0, C
 frmWait = 0, 0, 0, 0, C, 0, 0, 0, 0, C
 frmNewCharacter = 242, 242, 1539, 990, , 0, 0, 0, 0, C
