@@ -160,6 +160,7 @@ Sub SendToGuild(GuildNum As Long, St As String)
         End With
     Next A
 End Sub
+
 Sub SendToGuildAllBut(Index As Long, GuildNum As Long, St As String)
     Dim A As Long
     For A = 1 To MaxUsers

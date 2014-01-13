@@ -1,5 +1,6 @@
 Attribute VB_Name = "modCombat"
 Option Explicit
+
 Function ProjectileDamage(Index As Long) As Long
     Dim A As Long, Damage As Long, Weapon As Long, Modifier As Long
     With Player(Index)
@@ -518,6 +519,7 @@ Function MagicArmor(Index As Long, ByVal Damage As Long) As Long
     End With
     MagicArmor = Damage
 End Function
+
 Function PlayerDamage(Index As Long) As Long
     Dim A As Long, Modifier As Long
     With Player(Index)

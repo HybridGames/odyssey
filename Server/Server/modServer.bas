@@ -25,6 +25,7 @@ Public ListeningSocket As Long
 'Writes World Flags to the database
 Sub SaveFlags()
     Dim FlagIndex As Long, St As String
+    
     For FlagIndex = 0 To 255
         If World.Flag(FlagIndex) > 0 Then
             St = St + QuadChar$(World.Flag(FlagIndex))
@@ -37,6 +38,7 @@ Sub SaveFlags()
     DataRS.Update
 End Sub
 
+'Writes object data to the database
 Sub SaveObjects()
     Dim MapIndex As Long, B As Long, St As String
     For MapIndex = 1 To MaxMaps
@@ -61,6 +63,7 @@ Sub SaveObjects()
     DataRS.Update
 End Sub
 
+'Checks that a guild is valid, and deletes it if it isn't
 Sub CheckGuild(Index As Long)
     If Guild(Index).Name <> vbNullString Then
         '@TODO Should we make this configurable?
@@ -71,6 +74,7 @@ Sub CheckGuild(Index As Long)
     End If
 End Sub
 
+'Creates a checksum
 Function CheckSum(St As String) As Long
     Dim A As Long, Sum As Long
     For A = 1 To Len(St)
@@ -325,7 +329,8 @@ Sub GainExp(Index As Long, Exp As Long)
 End Sub
 
 'Grants a player experience
-'@todo only difference between this and GainExp seems to be the World.MaxLevel
+'Called when an elite monster is killed or if a max level player is killed
+'Didn't have any code difference between GainExp, so it's routed to GainExp now
 Sub GainEliteExp(Index As Long, Exp As Long)
     GainExp Index, Exp
     Exit Sub
@@ -683,6 +688,7 @@ Sub JoinMap(Index As Long)
     End With
 End Sub
 
+'Tells a player that they've been warped
 Sub MapWarp(Index As Long)
     With Player(Index)
         SendSocket Index, Chr$(147) + Chr$(.X) + Chr$(.Y) + Chr$(.D)
@@ -690,6 +696,7 @@ Sub MapWarp(Index As Long)
     End With
 End Sub
 
+'Loads data into a Map from a string of bytes
 Sub LoadMap(MapNum As Long, MapData As String)
     Dim A As Long, X As Long, Y As Long
     If Len(MapData) = 2677 Then
@@ -754,6 +761,7 @@ Sub LoadMap(MapNum As Long, MapData As String)
     End If
 End Sub
 
+'@todo can we move these into a new module for updating old data to new data
 Sub LoadMapOld(MapNum As Long, MapData As String)
     Dim A As Long, X As Long, Y As Long
     MsgBox Len(MapData)
@@ -818,6 +826,7 @@ Sub LoadMapOld(MapNum As Long, MapData As String)
     End If
 End Sub
 
+'@todo can we move these into a new module for updating old data to new data
 Sub LoadMapOld2008(MapNum As Long, MapData As String)
     Dim A As Long, X As Long, Y As Long
     If Len(MapData) = 2359 Then
@@ -879,6 +888,7 @@ Sub LoadMapOld2008(MapNum As Long, MapData As String)
     End If
 End Sub
 
+'@todo can we move these into a new module for updating old data to new data
 Sub LoadMapOld1997(MapNum As Long, MapData As String)
     Dim A As Long, X As Long, Y As Long
     If Len(MapData) = 1927 Then
@@ -938,6 +948,7 @@ Sub LoadMapOld1997(MapNum As Long, MapData As String)
     End If
 End Sub
 
+'Main function
 Sub Main()
 
     Randomize
@@ -1032,10 +1043,13 @@ Sub Main()
     Startup = False
     PrintLog ("The Odyssey Online Classic Server Version A" + CStr(CurrentClientVer) + ".")
 End Sub
+
+'@todo Need to research if/how this is used
 Function NewMapMonster(MapNum As Long, MonsterNum As Long) As String
     Dim TX As Long, TY As Long, TriesLeft As Long
     Dim MonsterType As Long, MonsterFlags As Byte
 
+    '@todo What is this /2 * 2 for?
     If Int(MonsterNum / 2) * 2 = MonsterNum Or ExamineBit(Map(MapNum).flags, 4) = True Then
         MonsterType = Map(MapNum).MonsterSpawn(Int(MonsterNum / 2)).Monster
         If MonsterType > 0 Then
@@ -1047,6 +1061,8 @@ Function NewMapMonster(MapNum As Long, MonsterNum As Long) As String
             While TriesLeft > 0 And (Map(MapNum).Tile(TX, TY).Att > 0 Or Map(MapNum).Tile(TX, TY).Att2 > 0)
                 TX = Int(Rnd * 12)
                 TY = Int(Rnd * 12)
+                
+                'TriesLeft is never set to anything
                 TriesLeft = TriesLeft - 1
             Wend
             If TriesLeft > 0 Then
@@ -1055,6 +1071,7 @@ Function NewMapMonster(MapNum As Long, MonsterNum As Long) As String
         End If
     End If
 End Function
+
 Function NewMapObject(MapNum As Long, ObjectNum As Long, Value As Long, X As Long, Y As Long, Infinite As Boolean) As Long
     Dim A As Long
     If MapNum >= 1 Then
@@ -1090,6 +1107,7 @@ Function NewMapObject(MapNum As Long, ObjectNum As Long, Value As Long, X As Lon
         End If
     End If
 End Function
+
 Sub Partmap(Index As Long)
     Dim A As Long, MapNum As Long
 
@@ -1570,6 +1588,7 @@ Sub ResetMap(MapNum As Long)
         .ResetTimer = 0
     End With
 End Sub
+
 Sub SendCharacterData(Index As Long)
     Dim St As String, A As Long
     With Player(Index)
@@ -1643,6 +1662,11 @@ Function ValidName(St As String) As Boolean
     End If
     ValidName = True
 End Function
+
+'Custom Defined WindowProc
+'http://msdn.microsoft.com/en-us/library/windows/desktop/ms633591(v=vs.85).aspx
+'GWL_WNDPROC
+'-4
 Function WindowProc(ByVal hw As Long, ByVal uMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
     Dim TempSocket As Long
 
@@ -1707,8 +1731,12 @@ Function WindowProc(ByVal hw As Long, ByVal uMsg As Long, ByVal wParam As Long, 
             End If
         End Select
     End Select
+    
+    'Continues the call to the previous WindowProc
     WindowProc = CallWindowProc(lpPrevWndProc, hw, uMsg, wParam, lParam)
 End Function
+
+'@todo What is this doing?
 Sub ParseString(St1)
     Dim St As String, A As Long, B As Long, C As Long
     If Mid$(St1, Len(St1), 1) = Chr$(13) Or Mid$(St1, Len(St1), 1) = Chr$(10) Then
@@ -1753,15 +1781,19 @@ TryAgain9:
         B = C + 1
     Next A
 End Sub
+
 Function ExamineBit(bytByte As Byte, Bit As Byte) As Byte
     ExamineBit = ((bytByte And (2 ^ Bit)) > 0)
 End Function
+
 Sub SetBit(bytByte As Byte, Bit As Byte)
     bytByte = bytByte Or (2 ^ Bit)
 End Sub
+
 Sub ClearBit(bytByte As Byte, Bit As Byte)
     bytByte = bytByte And Not (2 ^ Bit)
 End Sub
+
 Sub CloseClientSocket(Index As Long)
     Dim A As Long
     With Player(Index)
@@ -1878,12 +1910,15 @@ Sub CloseClientSocket(Index As Long)
         End If
     End With
 End Sub
+
 Function DoubleChar(Num As Long) As String
     DoubleChar = Chr$(Int(Num / 256)) + Chr$(Num Mod 256)
 End Function
+
 Function TripleChar(Num As Long) As String
     TripleChar = Chr$(Int(Num / 65536)) + Chr$(Int((Num Mod 65536) / 256)) + Chr$(Num Mod 256)
 End Function
+
 Function QuadChar(Num As Long) As String
     If Num < 0 Then
         SendToGods Chr$(56) + Chr$(7) + "WARNING:  QuadChar less than 0: " + CStr(Num)
@@ -1894,12 +1929,15 @@ Function QuadChar(Num As Long) As String
         QuadChar = Chr$(Int(Num / 16777216) Mod 256) + Chr$(Int(Num / 65536) Mod 256) + Chr$(Int(Num / 256) Mod 256) + Chr$(Num Mod 256)
     End If
 End Function
+
 Function Exists(Filename As String) As Boolean
     Exists = (Dir(Filename) <> vbNullString)
 End Function
+
 Function GetInt(Chars As String) As Long
     GetInt = CLng(Asc(Mid$(Chars, 1, 1))) * 256& + CLng(Asc(Mid$(Chars, 2, 1)))
 End Function
+
 Sub GetWords(St As String)
     Dim A As Long, B As Long, C As Long
     B = 1
@@ -1917,6 +1955,7 @@ TryAgain:
         B = C + 1
     Next A
 End Sub
+
 Sub GetSections(St)
     Dim A As Long, B As Long, C As Long
     B = 1
@@ -1934,6 +1973,7 @@ Sub GetSections(St)
         B = C + 1
     Next A
 End Sub
+
 Function Nick(UserHost As String) As String
     Dim A As Long
 
@@ -1944,12 +1984,15 @@ Function Nick(UserHost As String) As String
         Nick = UserHost
     End If
 End Function
+
 Public Sub Hook()
     lpPrevWndProc = SetWindowLong(gHW, GWL_WNDPROC, AddressOf WindowProc)
 End Sub
+
 Public Sub Unhook()
     SetWindowLong gHW, GWL_WNDPROC, lpPrevWndProc
 End Sub
+
 Sub SavePlayerData(Index)
     Dim A As Long, St As String
 
@@ -2070,6 +2113,7 @@ Sub SavePlayerData(Index)
         UserRS.Update
     End With
 End Sub
+
 Sub SendAll(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2080,6 +2124,7 @@ Sub SendAll(ByVal St As String)
         End With
     Next A
 End Sub
+
 Sub SendToConnected(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2090,6 +2135,7 @@ Sub SendToConnected(ByVal St As String)
         End With
     Next A
 End Sub
+
 Sub SendAllBut(ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2100,6 +2146,7 @@ Sub SendAllBut(ByVal Index As Long, ByVal St As String)
         End With
     Next A
 End Sub
+
 Sub SendAllButRaw(ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2110,6 +2157,7 @@ Sub SendAllButRaw(ByVal Index As Long, ByVal St As String)
         End With
     Next A
 End Sub
+
 Sub SendAllButBut(ByVal Index1 As Long, ByVal Index2 As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2142,6 +2190,7 @@ Sub SendToAdmins(ByVal St As String)
         End With
     Next A
 End Sub
+
 Sub SendToGodsAllBut(Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2163,6 +2212,7 @@ Sub SendToMap(ByVal MapNum As Long, ByVal St As String)
         End With
     Next A
 End Sub
+
 Sub SendToMapRaw(ByVal MapNum As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2173,6 +2223,7 @@ Sub SendToMapRaw(ByVal MapNum As Long, ByVal St As String)
         End With
     Next A
 End Sub
+
 Sub ShutdownServer()
     Dim A As Long, B As Long
     For A = 1 To MaxUsers
@@ -2234,6 +2285,7 @@ Sub ShutdownServer()
     
     End
 End Sub
+
 Sub SendToMapAllBut(ByVal MapNum As Long, ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2244,6 +2296,7 @@ Sub SendToMapAllBut(ByVal MapNum As Long, ByVal Index As Long, ByVal St As Strin
         End With
     Next A
 End Sub
+
 Sub SendToMapAllButRaw(ByVal MapNum As Long, ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2254,6 +2307,7 @@ Sub SendToMapAllButRaw(ByVal MapNum As Long, ByVal Index As Long, ByVal St As St
         End With
     Next A
 End Sub
+
 Sub SendSocket(ByVal Index As Long, ByVal St As String)
     If Index > 0 Then
         With Player(Index)
@@ -2267,6 +2321,7 @@ Sub SendSocket(ByVal Index As Long, ByVal St As String)
         End With
     End If
 End Sub
+
 Function GetSendSocket(ByVal Index As Long, ByVal St As String) As String
     Dim SendSt As String
     With Player(Index)
@@ -2278,6 +2333,7 @@ Function GetSendSocket(ByVal Index As Long, ByVal St As String) As String
         End If
     End With
 End Function
+
 Sub SendRaw(ByVal Index As Long, ByVal St As String)
     With Player(Index)
         If .InUse = True Then
@@ -2285,6 +2341,7 @@ Sub SendRaw(ByVal Index As Long, ByVal St As String)
         End If
     End With
 End Sub
+
 Sub SendRawReal(ByVal Index As Long, ByVal St As String)
     With Player(Index)
         If .InUse = True Then
@@ -2292,6 +2349,7 @@ Sub SendRawReal(ByVal Index As Long, ByVal St As String)
         End If
     End With
 End Sub
+
 Sub PrintLog(St)
     With frmMain.lstLog
         .AddItem St
@@ -2343,6 +2401,7 @@ Sub GiveStartingEQ(Index As Long)
         End With
     End If
 End Sub
+
 Function GetRepairCost(Index As Long, Slot As Integer) As Long
     Dim A As Long, B As Long, C As Long
 
@@ -2442,6 +2501,7 @@ Function GetRepairCost(Index As Long, Slot As Integer) As Long
         End If
     End If
 End Function
+
 Function GetObjectDur(ByVal Index As Long, ByVal Slot As Long) As Long
     Dim Percent As Single
     Select Case Object(Player(Index).Inv(Slot).Object).Type
@@ -3080,6 +3140,7 @@ Sub EquipObject(Index As Long, Slot As Long)
         End If
     End With
 End Sub
+
 Sub UnEquipObject(Index As Long, Slot As Long)
     Dim A As Long
     With Player(Index)

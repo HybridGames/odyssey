@@ -7,6 +7,7 @@ Public MagicVersionList As String
 Public PrefixVersionList As String
 Public SuffixVersionList As String
 
+'@todo How often are these lists generated? Should we cache them?
 Public Sub GenerateObjectVersionList()
     ObjectVersionList = vbNullString
     For A = 1 To MaxObjects

@@ -95,6 +95,7 @@ ErrorTrap:
     End If
 
 End Function
+
 Public Function ZDecompressByteArray(ByRef ArrayToDecompress() As Byte, _
                                      ByRef Return_Array() As Byte, _
                                      Optional ByRef Return_ErrorCode As Long, _
@@ -168,6 +169,7 @@ ErrorTrap:
     End If
 
 End Function
+
 Public Function ZCompressFile(ByVal FileToCompress As String, _
                               ByVal OutputFile As String, _
                               Optional ByVal CompressionLevel As ZCompressLevels = Z_BEST_COMPRESSION, Optional ByRef Return_ErrorCode As Long, _
@@ -235,6 +237,7 @@ ErrorTrap:
     End If
 
 End Function
+
 Public Function ZDecompressFile(ByVal FileToDecompress As String, _
                                 ByVal OutputFile As String, _
                                 Optional ByRef Return_ErrorCode As Long, _
