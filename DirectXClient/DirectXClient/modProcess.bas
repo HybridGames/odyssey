@@ -2519,7 +2519,7 @@ Function EncryptString(St As String) As String
 End Function
 
 Sub ProcessReceivedMap(St As String)
-    On Error GoTo FailedToLoad
+    'On Error GoTo FailedToLoad
 
     RequestedMap = False
 
@@ -2527,7 +2527,7 @@ Sub ProcessReceivedMap(St As String)
 
     Dim MapDataWorkingArray() As Byte
     MapDataWorkingArray() = StrConv(MapData, vbFromUnicode)
-    EncryptDataString MapDataWorkingArray(0), CMap * 16 Mod 50 + 5
+    'EncryptDataString MapDataWorkingArray(0), CMap * 16 Mod 50 + 5
     MapData = StrConv(MapDataWorkingArray, vbUnicode)
 
     On Error Resume Next
