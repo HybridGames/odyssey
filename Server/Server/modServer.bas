@@ -2,8 +2,8 @@ Attribute VB_Name = "modServer"
 Option Explicit
 
 'Game Constants
-Public Const TitleString = "The Odyssey Classic Server"
-Public Const MaxUsers = 80
+Public Const TitleString = "Odyssey: Renaissance"
+Public Const MaxUsers = 150
 Public Const DownloadSite = "http://www.odysseyclassic.com/"
 
 Public Const CurrentClientVer = 201
