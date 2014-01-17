@@ -965,6 +965,7 @@ Sub CreateMapsTable()
     'Append Maps Table
     DB.TableDefs.Append Td
 End Sub
+
 Sub CreateGuildsTable()
     Dim A As Long
     Dim Td As TableDef
@@ -1039,6 +1040,7 @@ Sub CreateGuildsTable()
     'Append Guilds Table
     DB.TableDefs.Append Td
 End Sub
+
 Sub CreateBansTable()
     Dim Td As TableDef
     Dim NewField As Field
@@ -1077,6 +1079,7 @@ Sub CreateBansTable()
     'Append Bans Table
     DB.TableDefs.Append Td
 End Sub
+
 Sub CreateHallsTable()
     Dim Td As TableDef
     Dim NewField As Field
@@ -1257,6 +1260,7 @@ Sub CreateMonstersTable()
     'Append Monster Table
     DB.TableDefs.Append Td
 End Sub
+
 Sub CreateObjectsTable()
     Dim Td As TableDef
     Dim NewField As Field
