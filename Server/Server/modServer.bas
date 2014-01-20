@@ -4,7 +4,7 @@ Option Explicit
 'Game Constants
 Public Const TitleString = "Odyssey: Renaissance"
 Public Const MaxUsers = 150
-Public Const DownloadSite = "http://www.odysseyclassic.com/"
+Public Const DownloadSite = "https://github.com/HybridGames/odyssey"
 
 Public Const CurrentClientVer = 201
 Public Const PrefixSuffixChance = 40
@@ -960,6 +960,7 @@ Sub Main()
 
     Startup = True
 
+    'Function Table is a lookup table for scripts
     InitFunctionTable
 
     frmLoading.Show
@@ -1108,6 +1109,7 @@ Function NewMapObject(MapNum As Long, ObjectNum As Long, Value As Long, X As Lon
     End If
 End Function
 
+'Called when a player leaves a map
 Sub Partmap(Index As Long)
     Dim A As Long, MapNum As Long
 
@@ -1115,6 +1117,7 @@ Sub Partmap(Index As Long)
         MapNum = .Map
         If MapNum > 0 Then
             Parameter(0) = Index
+            '@script PARTMAP
             RunScript "PARTMAP" + CStr(MapNum)
 
             With Map(MapNum)
@@ -1133,6 +1136,7 @@ Sub Partmap(Index As Long)
             End With
             SendToMapAllBut MapNum, Index, Chr$(9) + Chr$(Index)
 
+            'If the player hasn't disconnect/logged off, send them the NPC leave text
             If .Socket <> INVALID_SOCKET Then
                 A = Map(MapNum).NPC
                 If A >= 1 Then
@@ -1149,26 +1153,35 @@ Sub Partmap(Index As Long)
     End With
 End Sub
 
+'Called when a player is killed by another player
+'@todo Need to review, this seems like it's doing the same thing way too many times
 Function PlayerDied(Index As Long, Killer As Long) As Boolean
     PlayerDied = False
     Dim A As Long, B As Long, C As Long, D As Long, St1 As String, St2 As String, Tick As Currency
     Tick = getTime()
-    Dim DontDropOnGround As Boolean
+    Dim DontDropOnGround As Boolean 'Flag to drop loot on the ground, if the killer has no inventory slots
     Dim MapNum As Long
+    
     Parameter(0) = Index
     Player(Index).IsDead = True
     Player(Index).DeadTick = Tick + World.DeathTime * 1000
+    
+    '@todo Should there be a separate Script Event for arena maps?
     If ExamineBit(Map(Player(Index).Map).flags, 7) = True Then    'Map is an arena
         PlayerDied = False
         Exit Function
     End If
+    
+    '@script PLAYERDIE
     If Not RunScript("PLAYERDIE") = 0 Then
         PlayerDied = False
         Exit Function
     End If
+    
     If Not Index = Killer Then
         If Player(Index).Status = 1 Then Player(Index).Status = 0
     End If
+    
     SetPlayerStatus Index, Player(Index).Status
 
     With Player(Index)
@@ -1181,10 +1194,13 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                 If .EquippedObject(6).Object = A Then C = 1
                 Parameter(0) = Index
                 Parameter(1) = .Inv(A).Value
+                '@todo Need to review and test this, not sure if it's setup properly
+                '@script DROPOBJ
                 If Not ExamineBit(Object(.Inv(A).Object).flags, 2) = 255 And C = 1 And RunScript("DROPOBJ" + CStr(.Inv(A).Object)) = 0 Then
                     DontDropOnGround = False
                     If Killer > -1 And Not Killer = Index Then
                         Select Case Object(.Inv(A).Object).Type
+                        '@todo Why Item 6, 11?
                         Case 6, 11
                             D = FindInvObject(Killer, CLng(.Inv(A).Object))
                             If D = 0 Then D = FreeInvNum(Killer)
@@ -1195,6 +1211,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                         If D > 0 Then
                             Parameter(0) = Killer
                             Parameter(1) = .Inv(A).Value
+                            '@script GETOBJ
                             If RunScript("GETOBJ" + CStr(.Inv(A).Object)) = 0 Then
                                 Select Case Object(.Inv(A).Object).Type
                                     Case 6, 11
@@ -1247,6 +1264,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
         If .EquippedObject(RandomDrop).Object > 0 Then
             Parameter(0) = Index
             Parameter(1) = .EquippedObject(RandomDrop).Value
+            '@script DROPOBJ
             If Not ExamineBit(Object(.EquippedObject(RandomDrop).Object).flags, 2) And RunScript("DROPOBJ" + CStr(.EquippedObject(RandomDrop).Object)) = 0 Then
                 DontDropOnGround = False
                 If Killer > -1 And Not Killer = Index Then
@@ -1308,6 +1326,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                     If .EquippedObject(A).Object > 0 Then
                         Parameter(0) = Index
                         Parameter(1) = .EquippedObject(A).Value
+                        '@script DROPOBJ
                         If Not ExamineBit(Object(.EquippedObject(A).Object).flags, 2) And RunScript("DROPOBJ" + CStr(.EquippedObject(A).Object)) = 0 Then
                             DontDropOnGround = False
 
@@ -1524,6 +1543,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
     End With
 End Function
 
+'Reinitializes a map to it's base settings
 Sub ResetMap(MapNum As Long)
     Dim A As Long, X As Long, Y As Long
     Dim NumPlayers As Long
@@ -1589,6 +1609,8 @@ Sub ResetMap(MapNum As Long)
     End With
 End Sub
 
+'Sends the characters information to them
+'@todo Candidate for compression or is this only used once at login
 Sub SendCharacterData(Index As Long)
     Dim St As String, A As Long
     With Player(Index)
@@ -1611,6 +1633,7 @@ Sub SendCharacterData(Index As Long)
     End With
 End Sub
 
+'@todo Not sure yet what this does. Looks like it sends all the Guild Names and Member counts
 Sub SendDataPacket(Index As Long, StartNum As Long)
     Dim A As Long, St1 As String
 
@@ -1634,6 +1657,8 @@ Sub SendDataPacket(Index As Long, StartNum As Long)
     SendRaw Index, St1
 End Sub
 
+'Spawns a monster on a map
+'Returns a string that looks like it's formatted to be sent to players
 Function SpawnMapMonster(MapNum As Long, MonsterNum As Long, MonsterType As Long, TX As Long, TY As Long)
     With Map(MapNum).Monster(MonsterNum)
         .Monster = MonsterType
@@ -1649,11 +1674,12 @@ Function SpawnMapMonster(MapNum As Long, MonsterNum As Long, MonsterType As Long
     End With
 End Function
 
-Function ValidName(St As String) As Boolean
+'Checks is a name has any invalid characters
+Function ValidName(Name As String) As Boolean
     Dim A As Long, B As Long
-    If Len(St) > 0 Then
-        For A = 1 To Len(St)
-            B = Asc(Mid$(St, A, 1))
+    If Len(Name) > 0 Then
+        For A = 1 To Len(Name)
+            B = Asc(Mid$(Name, A, 1))
             If (B < 48 Or B > 57) And (B < 65 Or B > 90) And (B < 97 Or B > 122) And B <> 32 And B <> 95 Then
                 ValidName = False
                 Exit Function
@@ -1782,14 +1808,17 @@ TryAgain9:
     Next A
 End Sub
 
+'Bit Wise Check
 Function ExamineBit(bytByte As Byte, Bit As Byte) As Byte
     ExamineBit = ((bytByte And (2 ^ Bit)) > 0)
 End Function
 
+'Bit Wise Set 1
 Sub SetBit(bytByte As Byte, Bit As Byte)
     bytByte = bytByte Or (2 ^ Bit)
 End Sub
 
+'Bit Wise Set 0
 Sub ClearBit(bytByte As Byte, Bit As Byte)
     bytByte = bytByte And Not (2 ^ Bit)
 End Sub
@@ -1911,14 +1940,18 @@ Sub CloseClientSocket(Index As Long)
     End With
 End Sub
 
+'Turns a number < 65536 into a string with two characters
 Function DoubleChar(Num As Long) As String
     DoubleChar = Chr$(Int(Num / 256)) + Chr$(Num Mod 256)
 End Function
 
+'Turns a number < 16777216 into a string with three characters
 Function TripleChar(Num As Long) As String
     TripleChar = Chr$(Int(Num / 65536)) + Chr$(Int((Num Mod 65536) / 256)) + Chr$(Num Mod 256)
 End Function
 
+'Turns a large number into a string with four characters
+'Doesn't handle negative numbers
 Function QuadChar(Num As Long) As String
     If Num < 0 Then
         SendToGods Chr$(56) + Chr$(7) + "WARNING:  QuadChar less than 0: " + CStr(Num)
@@ -1930,14 +1963,18 @@ Function QuadChar(Num As Long) As String
     End If
 End Function
 
+'Checks if a file exists
 Function Exists(Filename As String) As Boolean
     Exists = (Dir(Filename) <> vbNullString)
 End Function
 
+'Gets an integer from a two character string
+'Opposite of DoubleChar
 Function GetInt(Chars As String) As Long
     GetInt = CLng(Asc(Mid$(Chars, 1, 1))) * 256& + CLng(Asc(Mid$(Chars, 2, 1)))
 End Function
 
+'Splits a string by spaces
 Sub GetWords(St As String)
     Dim A As Long, B As Long, C As Long
     B = 1
@@ -1993,6 +2030,7 @@ Public Sub Unhook()
     SetWindowLong gHW, GWL_WNDPROC, lpPrevWndProc
 End Sub
 
+'Saves user information to the database
 Sub SavePlayerData(Index)
     Dim A As Long, St As String
 
@@ -2114,6 +2152,7 @@ Sub SavePlayerData(Index)
     End With
 End Sub
 
+'Sends a message to all Users who are playing
 Sub SendAll(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2125,6 +2164,7 @@ Sub SendAll(ByVal St As String)
     Next A
 End Sub
 
+'Sends a message to all users that are connected
 Sub SendToConnected(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2136,6 +2176,7 @@ Sub SendToConnected(ByVal St As String)
     Next A
 End Sub
 
+'Sends a message to all but one playing user
 Sub SendAllBut(ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2147,6 +2188,7 @@ Sub SendAllBut(ByVal Index As Long, ByVal St As String)
     Next A
 End Sub
 
+'Sends a message to all but one playing user, raw format
 Sub SendAllButRaw(ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2158,6 +2200,8 @@ Sub SendAllButRaw(ByVal Index As Long, ByVal St As String)
     Next A
 End Sub
 
+'Looks like it sends all but two playing users
+'@todo Should we generalize this into a method that takes an array of users to not send to?
 Sub SendAllButBut(ByVal Index1 As Long, ByVal Index2 As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2169,6 +2213,7 @@ Sub SendAllButBut(ByVal Index1 As Long, ByVal Index2 As Long, ByVal St As String
     Next A
 End Sub
 
+'Sends to anyone with Access > 0
 Sub SendToGods(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2180,6 +2225,7 @@ Sub SendToGods(ByVal St As String)
     Next A
 End Sub
 
+'Sends to anyone with Access > 2
 Sub SendToAdmins(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2191,6 +2237,7 @@ Sub SendToAdmins(ByVal St As String)
     Next A
 End Sub
 
+'Sends to anyone access > 0 except one
 Sub SendToGodsAllBut(Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2213,6 +2260,7 @@ Sub SendToMap(ByVal MapNum As Long, ByVal St As String)
     Next A
 End Sub
 
+'Sends to anyone on a given map
 Sub SendToMapRaw(ByVal MapNum As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2224,6 +2272,7 @@ Sub SendToMapRaw(ByVal MapNum As Long, ByVal St As String)
     Next A
 End Sub
 
+'Graceful shutdown for the server
 Sub ShutdownServer()
     Dim A As Long, B As Long
     For A = 1 To MaxUsers
@@ -2286,6 +2335,7 @@ Sub ShutdownServer()
     End
 End Sub
 
+'Sends to everyone on a map except one
 Sub SendToMapAllBut(ByVal MapNum As Long, ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2297,6 +2347,7 @@ Sub SendToMapAllBut(ByVal MapNum As Long, ByVal Index As Long, ByVal St As Strin
     Next A
 End Sub
 
+'Sends a raw messaget to everyone on a map except one
 Sub SendToMapAllButRaw(ByVal MapNum As Long, ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2308,6 +2359,7 @@ Sub SendToMapAllButRaw(ByVal MapNum As Long, ByVal Index As Long, ByVal St As St
     Next A
 End Sub
 
+'Sends a String by Socket
 Sub SendSocket(ByVal Index As Long, ByVal St As String)
     If Index > 0 Then
         With Player(Index)
@@ -2322,6 +2374,7 @@ Sub SendSocket(ByVal Index As Long, ByVal St As String)
     End If
 End Sub
 
+'@todo Need to review what this is used for
 Function GetSendSocket(ByVal Index As Long, ByVal St As String) As String
     Dim SendSt As String
     With Player(Index)
@@ -2334,6 +2387,7 @@ Function GetSendSocket(ByVal Index As Long, ByVal St As String) As String
     End With
 End Function
 
+'Looks like it just uses SendSocket but prepends Packet Id 170
 Sub SendRaw(ByVal Index As Long, ByVal St As String)
     With Player(Index)
         If .InUse = True Then
@@ -2342,6 +2396,7 @@ Sub SendRaw(ByVal Index As Long, ByVal St As String)
     End With
 End Sub
 
+'The "Real" implementation of SendRaw, just sends the string with no prepending of the PacketId
 Sub SendRawReal(ByVal Index As Long, ByVal St As String)
     With Player(Index)
         If .InUse = True Then
@@ -2350,6 +2405,7 @@ Sub SendRawReal(ByVal Index As Long, ByVal St As String)
     End With
 End Sub
 
+'Prints info on the Server Form
 Sub PrintLog(St)
     With frmMain.lstLog
         .AddItem St
@@ -2358,6 +2414,7 @@ Sub PrintLog(St)
     End With
 End Sub
 
+'@todo Need to review
 Function AddSocketQue(Index As Long) As Integer
     Dim A As Integer
 
@@ -2375,6 +2432,8 @@ Function AddSocketQue(Index As Long) As Integer
     Next A
 End Function
 
+'Gives the starting Equipment to a player
+'@todo we should work on changing the hardcoded values
 Sub GiveStartingEQ(Index As Long)
     Dim A As Long, B As Long, C As Long
     If Index >= 1 And Index <= MaxUsers Then

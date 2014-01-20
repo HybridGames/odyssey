@@ -1,14 +1,14 @@
 VERSION 5.00
 Begin VB.Form frmMain 
    Caption         =   "The Odyssey Classic Server"
-   ClientHeight    =   1605
+   ClientHeight    =   5850
    ClientLeft      =   165
-   ClientTop       =   855
+   ClientTop       =   735
    ClientWidth     =   7500
    ControlBox      =   0   'False
    Icon            =   "frmMain.frx":0000
    LinkTopic       =   "Form1"
-   ScaleHeight     =   1605
+   ScaleHeight     =   5850
    ScaleWidth      =   7500
    StartUpPosition =   3  'Windows Default
    Begin VB.Timer tmrCloseScks 
@@ -32,7 +32,7 @@ Begin VB.Form frmMain
       Top             =   0
    End
    Begin VB.ListBox lstLog 
-      Height          =   1230
+      Height          =   5520
       Left            =   0
       TabIndex        =   0
       Top             =   0
@@ -42,7 +42,7 @@ Begin VB.Form frmMain
       Height          =   285
       Left            =   0
       TabIndex        =   1
-      Top             =   1320
+      Top             =   5520
       Width           =   7455
    End
    Begin VB.Menu mnuServer 
