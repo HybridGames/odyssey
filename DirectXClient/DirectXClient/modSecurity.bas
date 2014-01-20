@@ -615,19 +615,19 @@ End Function
 Sub EncryptFiles()
     'DecryptFile App.Path + "\tiles.rsc"
     
-    EncryptFile App.Path + "\sprites.rsc"
-    EncryptFile App.Path + "\tiles.rsc"
-    EncryptFile App.Path + "\tilesm.rsc"
-    EncryptFile App.Path + "\objects.rsc"
-    EncryptFile App.Path + "\effects.rsc"
-    EncryptFile App.Path + "\hpbar.rsc"
-    EncryptFile App.Path + "\wait.rsc"
-    EncryptFile App.Path + "\stats.rsc"
-    EncryptFile App.Path + "\menu.rsc"
-    EncryptFile App.Path + "\inventory.rsc"
-    EncryptFile App.Path + "\interface.rsc"
-    EncryptFile App.Path + "\atts.rsc"
-    EncryptFile App.Path + "\InterfaceLights.rsc"
+    'EncryptFile App.Path + "\sprites.rsc"
+    'EncryptFile App.Path + "\tiles.rsc"
+    'EncryptFile App.Path + "\tilesm.rsc"
+    'EncryptFile App.Path + "\objects.rsc"
+    'EncryptFile App.Path + "\effects.rsc"
+    'EncryptFile App.Path + "\hpbar.rsc"
+    'EncryptFile App.Path + "\wait.rsc"
+    'EncryptFile App.Path + "\stats.rsc"
+    'EncryptFile App.Path + "\menu.rsc"
+    'EncryptFile App.Path + "\inventory.rsc"
+    'EncryptFile App.Path + "\interface.rsc"
+    'EncryptFile App.Path + "\atts.rsc"
+    'EncryptFile App.Path + "\InterfaceLights.rsc"
 End Sub
 
 Sub EncryptFile(File As String)

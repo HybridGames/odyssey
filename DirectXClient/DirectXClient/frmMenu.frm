@@ -219,9 +219,9 @@ Private Sub Form_Load()
     FileByteArray() = StrConv(File, vbFromUnicode)
     ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
 
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
     frmMenu.Picture = LoadPicture(File)
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
 
     lblCurrentServer = ServerDescription
 End Sub

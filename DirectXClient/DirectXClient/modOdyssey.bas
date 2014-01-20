@@ -871,9 +871,9 @@ Sub OpenMapEdit()
     FileByteArray() = StrConv(File, vbFromUnicode)
     ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
 
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
     GetBitmapDimensions "tiles.rsc", Width, Height
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
 
 
 
@@ -2130,7 +2130,7 @@ Sub InitializeGame()
 
     frmWait.lblStatus.Caption = "Initializing Data ..."
     frmWait.lblStatus.Refresh
-    EncryptFiles
+    'EncryptFiles
 
     LoadMapData MapData
     

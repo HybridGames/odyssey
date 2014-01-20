@@ -4645,18 +4645,18 @@ Private Sub Form_Load()
     FileByteArray() = StrConv(File, vbFromUnicode)
     ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
 
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
     frmMain.Picture = LoadPicture(File)
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
 
 
     File = "stats.rsc"
     FileByteArray() = StrConv(File, vbFromUnicode)
     ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
 
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
     frmMain.picStats.Picture = LoadPicture(File)
-    EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
 
     InitializeLighting
     OutdoorLight = 150

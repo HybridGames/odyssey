@@ -201,11 +201,11 @@ Public Sub LoadProtectedSurface(Surface As DirectDrawSurface4, File As String)
         FileByteArray() = StrConv(File, vbFromUnicode)
         ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
 
-        EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+        'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
 
         LoadSurface Surface, File
 
-        EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
+        'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
     End If
 End Sub
 
