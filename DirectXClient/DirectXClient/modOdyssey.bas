@@ -860,23 +860,14 @@ Function IsVacant(X As Byte, Y As Byte) As Boolean
     Next A
     IsVacant = True
 End Function
+
 Sub OpenMapEdit()
     Dim Width As Long, Height As Long
-
-
     Dim File As String
-    Dim FileByteArray() As Byte
 
     File = "tiles.rsc"
-    FileByteArray() = StrConv(File, vbFromUnicode)
-    ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
-
-    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
     GetBitmapDimensions "tiles.rsc", Width, Height
-    'EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
-
-
-
+    
     frmMain.MapScroll.max = Int(Height / 32) - 7
 
     MapEdit = True
@@ -2130,7 +2121,6 @@ Sub InitializeGame()
 
     frmWait.lblStatus.Caption = "Initializing Data ..."
     frmWait.lblStatus.Refresh
-    'EncryptFiles
 
     LoadMapData MapData
     

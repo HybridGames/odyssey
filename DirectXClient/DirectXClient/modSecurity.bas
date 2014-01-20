@@ -612,56 +612,6 @@ Function GetPriority() As Long
     GetPriority = (GetPriorityClass(GetCurrentProcess))
 End Function
 
-Sub EncryptFiles()
-    'DecryptFile App.Path + "\tiles.rsc"
-    
-    'EncryptFile App.Path + "\sprites.rsc"
-    'EncryptFile App.Path + "\tiles.rsc"
-    'EncryptFile App.Path + "\tilesm.rsc"
-    'EncryptFile App.Path + "\objects.rsc"
-    'EncryptFile App.Path + "\effects.rsc"
-    'EncryptFile App.Path + "\hpbar.rsc"
-    'EncryptFile App.Path + "\wait.rsc"
-    'EncryptFile App.Path + "\stats.rsc"
-    'EncryptFile App.Path + "\menu.rsc"
-    'EncryptFile App.Path + "\inventory.rsc"
-    'EncryptFile App.Path + "\interface.rsc"
-    'EncryptFile App.Path + "\atts.rsc"
-    'EncryptFile App.Path + "\InterfaceLights.rsc"
-End Sub
-
-Sub EncryptFile(File As String)
-    If Exists(File + ".nodist") Then
-        On Error Resume Next
-        Kill File
-        On Error GoTo 0
-
-        FileCopy File + ".nodist", File
-
-        Dim FileByteArray() As Byte
-
-        FileByteArray() = StrConv(File, vbFromUnicode)
-        ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
-
-        EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
-    End If
-End Sub
-
-Sub DecryptFile(File As String)
-    If Exists(File + ".nodist") Then
-    
-    Else
-        FileCopy File, File + ".nodist"
-
-        Dim FileByteArray() As Byte
-
-        FileByteArray() = StrConv(File + ".nodist", vbFromUnicode)
-        ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
-
-        EncryptDataFile FileByteArray(0), FileLen(File + ".nodist") Mod 87 + 5
-    End If
-End Sub
-
 Public Function ComputeCheckSum(ByVal sFile As String) As Long
 
     Dim lSourceCheckSum As Long

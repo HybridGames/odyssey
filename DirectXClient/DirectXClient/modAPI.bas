@@ -2,7 +2,7 @@ Attribute VB_Name = "modAPI"
 Option Explicit
 
 'Odyssey DLL functions
-Public Declare Function EncryptDataFile Lib "odysseydll" (ByRef File As Any, ByVal XorValue As Byte) As Long
+'Public Declare Function EncryptDataFile Lib "odysseydll" (ByRef File As Any, ByVal XorValue As Byte) As Long
 Public Declare Function EncryptDataString Lib "odysseydll" (ByRef File As Any, ByVal XorValue As Byte) As Long
 
 'Timing
