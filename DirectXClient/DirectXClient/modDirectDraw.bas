@@ -194,18 +194,11 @@ Public Sub LoadSurface(Surface As DirectDrawSurface4, File As String)
     Surface.SetColorKey DDCKEY_SRCBLT, DDCK
 End Sub
 
+'Originally had code to decrypt the files before loading them.
+'Leaving intact as we may want to do other works on a file before attaching it to a surface
 Public Sub LoadProtectedSurface(Surface As DirectDrawSurface4, File As String)
     If Exists(File) Then
-        Dim FileByteArray() As Byte
-
-        FileByteArray() = StrConv(File, vbFromUnicode)
-        ReDim Preserve FileByteArray(UBound(FileByteArray) + 1)
-
-        EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
-
         LoadSurface Surface, File
-
-        EncryptDataFile FileByteArray(0), FileLen(File) Mod 87 + 5
     End If
 End Sub
 
