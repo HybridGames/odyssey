@@ -1279,6 +1279,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                     If D > 0 Then
                         Parameter(0) = Killer
                         Parameter(1) = .EquippedObject(RandomDrop).Value
+                        '@script GETOBJ
                         If RunScript("GETOBJ" + CStr(.EquippedObject(RandomDrop).Object)) = 0 Then
                             Select Case Object(.EquippedObject(RandomDrop).Object).Type
                             Case 6, 11
@@ -1342,6 +1343,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                                 If D > 0 Then
                                     Parameter(0) = Killer
                                     Parameter(1) = .EquippedObject(A).Value
+                                    '@script GETOBJ
                                     If RunScript("GETOBJ" + CStr(.EquippedObject(A).Object)) = 0 Then
                                         Select Case Object(.EquippedObject(A).Object).Type
                                         Case 6, 11
@@ -1409,6 +1411,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                             If D > 0 Then
                                 Parameter(0) = Killer
                                 Parameter(1) = .EquippedObject(A).Value
+                                '@script GETOBJ
                                 If RunScript("GETOBJ" + CStr(.EquippedObject(A).Object)) = 0 Then
                                     Select Case Object(.EquippedObject(A).Object).Type
                                     Case 6, 11
@@ -1463,6 +1466,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                 Parameter(0) = Index
                 Parameter(1) = .Inv(A).Value
                 Randomize
+                '@script DROPOBJ
                 If (Rnd <= 0.3) And RunScript("DROPOBJ" + CStr(.Inv(A).Object)) = 0 Then
                     If Not ExamineBit(Object(.Inv(A).Object).flags, 2) = 255 Then
                         DontDropOnGround = False
@@ -1479,6 +1483,7 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                             If D > 0 Then
                                 Parameter(0) = Killer
                                 Parameter(1) = .Inv(A).Value
+                                '@script GETOBJ
                                 If RunScript("GETOBJ" + CStr(.Inv(A).Object)) = 0 Then
                                     Select Case Object(.Inv(A).Object).Type
                                     Case 6, 11
@@ -1823,6 +1828,7 @@ Sub ClearBit(bytByte As Byte, Bit As Byte)
     bytByte = bytByte And Not (2 ^ Bit)
 End Sub
 
+'Clean up script for when a player disconnects
 Sub CloseClientSocket(Index As Long)
     Dim A As Long
     With Player(Index)
@@ -2130,6 +2136,7 @@ Sub SavePlayerData(Index)
         Next A
         UserRS!flags = St
 
+        'Skills
         St = vbNullString
         For A = 1 To MaxSkill
             With .Skill(A)
@@ -2139,6 +2146,7 @@ Sub SavePlayerData(Index)
         Next A
         If Len(St) > 0 Then UserRS!Skills = St
         
+        'Magic
         St = vbNullString
         For A = 1 To MaxMagic
             With .MagicLevel(A)
@@ -2249,6 +2257,7 @@ Sub SendToGodsAllBut(Index As Long, ByVal St As String)
     Next A
 End Sub
 
+'Sends to anyone on a given map
 Sub SendToMap(ByVal MapNum As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
@@ -2288,6 +2297,7 @@ Sub ShutdownServer()
     EndWinsock
     Unhook
     
+    'Disable Times
     frmMain.PlayerTimer.Enabled = False
     frmMain.MapTimer.Enabled = False
     frmMain.MinuteTimer.Enabled = False
@@ -2461,6 +2471,7 @@ Sub GiveStartingEQ(Index As Long)
     End If
 End Sub
 
+'Calculates the repair cost of an item
 Function GetRepairCost(Index As Long, Slot As Integer) As Long
     Dim A As Long, B As Long, C As Long
 
@@ -2561,6 +2572,7 @@ Function GetRepairCost(Index As Long, Slot As Integer) As Long
     End If
 End Function
 
+'Gets the durability of an item
 Function GetObjectDur(ByVal Index As Long, ByVal Slot As Long) As Long
     Dim Percent As Single
     Select Case Object(Player(Index).Inv(Slot).Object).Type
@@ -2579,247 +2591,15 @@ Function GetObjectDur(ByVal Index As Long, ByVal Slot As Long) As Long
     End Select
 End Function
 
+'Used to force a refresh of player stats
 Sub CalculateStats(Index As Long)
-    Dim RunningTotal As Integer, MagicTotal As Integer, AttackTotal As Integer, A As Long
+    Dim DefenseTotal As Integer, MagicTotal As Integer, AttackTotal As Integer, A As Long
     Dim TotalMaxHP As Long, TotalMaxEnergy As Long, TotalMaxMana As Long
     Dim OldMaxHP As Integer, OldMaxEnergy As Integer, OldMaxMana As Integer
     Dim OldAttack As Integer, OldDefense As Integer, OldMagicDefense As Integer
 
     If Index > 0 Then
-        With Player(Index)
-
-            OldMaxHP = .MaxHP
-            OldMaxEnergy = .MaxEnergy
-            OldMaxMana = .MaxMana
-
-            OldAttack = .PhysicalAttack
-            OldDefense = .TotalDefense
-            OldMagicDefense = .MagicDefense
-
-            ''''Attack/Defense
-            If .EquippedObject(1).Object > 0 Then
-                If Object(.EquippedObject(1).Object).Type = 1 Then
-                    AttackTotal = AttackTotal + Object(.EquippedObject(1).Object).Data(1)
-                End If
-                If .EquippedObject(1).ItemPrefix > 0 Then
-                    Select Case ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationType
-                    Case 8    'Max HP
-                        TotalMaxHP = TotalMaxHP + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
-                    Case 9    'Max Energy
-                        TotalMaxEnergy = TotalMaxEnergy + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
-                    Case 10    'Max Mana
-                        TotalMaxMana = TotalMaxMana + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
-                    Case 11    'Damage
-                        AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
-                    Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
-                    Case 13    'Magic Defense
-                        MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
-                    End Select
-                End If
-                If .EquippedObject(1).ItemSuffix > 0 Then
-                    Select Case ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationType
-                    Case 8    'Max HP
-                        TotalMaxHP = TotalMaxHP + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
-                    Case 9    'Max Energy
-                        TotalMaxEnergy = TotalMaxEnergy + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
-                    Case 10    'Max Mana
-                        TotalMaxMana = TotalMaxMana + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
-                    Case 11    'Damage
-                        AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
-                    Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
-                    Case 13    'Magic Defense
-                        MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
-                    End Select
-                End If
-            End If
-
-            If .EquippedObject(2).Object > 0 Then    ' Shield
-                If .EquippedObject(2).ItemPrefix > 0 Then
-                    Select Case ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationType
-                    Case 8    'Max HP
-                        TotalMaxHP = TotalMaxHP + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
-                    Case 9    'Max Energy
-                        TotalMaxEnergy = TotalMaxEnergy + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
-                    Case 10    'Max Mana
-                        TotalMaxMana = TotalMaxMana + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
-                    Case 11    'Damage
-                        AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
-                    Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
-                    Case 13    'Magic Defense
-                        MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
-                    End Select
-                End If
-                If .EquippedObject(2).ItemSuffix > 0 Then
-                    Select Case ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationType
-                    Case 8    'Max HP
-                        TotalMaxHP = TotalMaxHP + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
-                    Case 9    'Max Energy
-                        TotalMaxEnergy = TotalMaxEnergy + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
-                    Case 10    'Max Mana
-                        TotalMaxMana = TotalMaxMana + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
-                    Case 11    'Damage
-                        AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
-                    Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
-                    Case 13    'Magic Defense
-                        MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
-                    End Select
-                End If
-            End If
-
-            For A = 3 To 4
-                If .EquippedObject(A).Object > 0 Then
-                    If .EquippedObject(A).ItemPrefix > 0 Then
-                        Select Case ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationType
-                        Case 8    'Max HP
-                            TotalMaxHP = TotalMaxHP + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
-                        Case 9    'Max Energy
-                            TotalMaxEnergy = TotalMaxEnergy + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
-                        Case 10    'Max Mana
-                            TotalMaxMana = TotalMaxMana + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
-                        Case 11    'Damage
-                            AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
-                        Case 12    'Defense
-                            RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
-                        Case 13    'Magic Defense
-                            MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
-                        End Select
-                    End If
-                    If .EquippedObject(A).ItemSuffix > 0 Then
-                        Select Case ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationType
-                        Case 8    'Max HP
-                            TotalMaxHP = TotalMaxHP + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
-                        Case 9    'Max Energy
-                            TotalMaxEnergy = TotalMaxEnergy + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
-                        Case 10    'Max Mana
-                            TotalMaxMana = TotalMaxMana + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
-                        Case 11    'Damage
-                            AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
-                        Case 12    'Defense
-                            RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
-                        Case 13    'Magic Defense
-                            MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
-                        End Select
-                    End If
-                    RunningTotal = RunningTotal + Object(.EquippedObject(A).Object).Data(1)
-                    MagicTotal = MagicTotal + Object(.EquippedObject(A).Object).Data(2)
-                End If
-            Next A
-            If .EquippedObject(5).Object > 0 Then    'Ring
-                If .EquippedObject(5).ItemPrefix > 0 Then
-                    Select Case ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationType
-                    Case 8    'Max HP
-                        TotalMaxHP = TotalMaxHP + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
-                    Case 9    'Max Energy
-                        TotalMaxEnergy = TotalMaxEnergy + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
-                    Case 10    'Max Mana
-                        TotalMaxMana = TotalMaxMana + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
-                    Case 11    'Damage
-                        AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
-                    Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
-                    Case 13    'Magic Defense
-                        MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
-                    End Select
-                End If
-                If .EquippedObject(5).ItemSuffix > 0 Then
-                    Select Case ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationType
-                    Case 8    'Max HP
-                        TotalMaxHP = TotalMaxHP + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
-                    Case 9    'Max Energy
-                        TotalMaxEnergy = TotalMaxEnergy + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
-                    Case 10    'Max Mana
-                        TotalMaxMana = TotalMaxMana + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
-                    Case 11    'Damage
-                        AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
-                    Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
-                    Case 13    'Magic Defense
-                        MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
-                    End Select
-                End If
-                If Object(.EquippedObject(5).Object).Data(0) = 0 Then    'Attack
-                    AttackTotal = AttackTotal + Object(.EquippedObject(5).Object).Data(2)
-                End If
-                If Object(.EquippedObject(5).Object).Data(0) = 1 Then    'Defense
-                    RunningTotal = RunningTotal + Object(.EquippedObject(5).Object).Data(2)
-                End If
-                If Object(.EquippedObject(5).Object).Data(0) = 2 Then    'Magic Defense
-                    MagicTotal = MagicTotal + Object(.EquippedObject(5).Object).Data(2)
-                End If
-            End If
-
-            If RunningTotal > 255 Then RunningTotal = 255
-            If MagicTotal > 255 Then MagicTotal = 255
-
-            .TotalDefense = RunningTotal
-            .MagicDefense = MagicTotal
-            '''
-
-
-            ''''HP/Mana
-            Dim TempVar As Double
-
-            'HP
-            TempVar = Class(.Class).StartHP + CInt(CDbl(Class(.Class).MaxHP - Class(.Class).StartHP) * (CDbl(.Level) / CDbl(World.MaxLevel)))
-            TotalMaxHP = TotalMaxHP + TempVar + CInt(World.StatConstitution)
-
-            'Energy
-            TempVar = Class(.Class).StartEnergy + CInt(CDbl(Class(.Class).MaxEnergy - Class(.Class).StartEnergy) * (CDbl(.Level) / CDbl(World.MaxLevel)))
-            TotalMaxEnergy = TotalMaxEnergy + TempVar + CInt(World.StatStamina)
-
-            'Mana
-            TempVar = Class(.Class).StartMana + CInt(CDbl(Class(.Class).MaxMana - Class(.Class).StartMana) * (CDbl(.Level) / CDbl(World.MaxLevel)))
-            TotalMaxMana = TotalMaxMana + TempVar + CInt(World.StatWisdom)
-            '''
-
-            If TotalMaxHP > 255 Then TotalMaxHP = 255
-            If TotalMaxEnergy > 255 Then TotalMaxEnergy = 255
-            If TotalMaxMana > 255 Then TotalMaxMana = 255
-
-            ''Final Stats
-            .MaxHP = TotalMaxHP
-            .MaxEnergy = TotalMaxEnergy
-            .MaxMana = TotalMaxMana
-
-            AttackTotal = AttackTotal + (World.StatStrength)
-            If AttackTotal > 255 Then AttackTotal = 255
-
-            .PhysicalAttack = AttackTotal
-
-            If .HP > .MaxHP Then
-                .HP = .MaxHP
-                SendSocket Index, Chr$(46) + Chr$(.HP)
-            End If
-            If .Energy > .MaxEnergy Then
-                .Energy = .MaxEnergy
-            End If
-            If .Mana > .MaxMana Then
-                .Mana = .MaxMana
-                SendSocket Index, Chr$(48) + Chr$(.Mana)
-            End If
-
-            Dim StatsChanged As Boolean
-            StatsChanged = False
-
-            If Not OldMaxHP = .MaxHP Then StatsChanged = True
-            If Not OldMaxEnergy = .MaxEnergy Then StatsChanged = True
-            If Not OldMaxMana = .MaxMana Then StatsChanged = True
-
-            If Not OldAttack = .PhysicalAttack Then StatsChanged = True
-            If Not OldDefense = .TotalDefense Then StatsChanged = True
-            If Not OldMagicDefense = .MagicDefense Then StatsChanged = True
-
-            If StatsChanged = True Then
-                SendSocket Index, Chr$(130) + Chr$(.MaxHP) + Chr$(.MaxEnergy) + Chr$(.MaxMana) + Chr$(.PhysicalAttack) + Chr$(.TotalDefense) + Chr$(.MagicDefense)
-            End If
-
-        End With
-
-        RunningTotal = 0
+        DefenseTotal = 0
         MagicTotal = 0
         AttackTotal = 0
 
@@ -2837,9 +2617,10 @@ Sub CalculateStats(Index As Long)
             TotalMaxEnergy = 0
             TotalMaxMana = 0
 
-            ''''Attack/Defense
+            'Equipment
+            'Sword
             If .EquippedObject(1).Object > 0 Then
-                If Object(.EquippedObject(1).Object).Type = 1 Or Object(.EquippedObject(1).Object).Type = 1 Then
+                If Object(.EquippedObject(1).Object).Type = 1 Then
                     AttackTotal = AttackTotal + Object(.EquippedObject(1).Object).Data(1)
                     If .EquippedObject(1).ItemPrefix > 0 Then
                         Select Case ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationType
@@ -2852,7 +2633,7 @@ Sub CalculateStats(Index As Long)
                         Case 11    'Damage
                             AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
                         Case 12    'Defense
-                            RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
+                            DefenseTotal = DefenseTotal + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
                         Case 13    'Magic Defense
                             MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(1).ItemPrefix).ModificationValue
                         End Select
@@ -2868,14 +2649,16 @@ Sub CalculateStats(Index As Long)
                         Case 11    'Damage
                             AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
                         Case 12    'Defense
-                            RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
+                            DefenseTotal = DefenseTotal + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
                         Case 13    'Magic Defense
                             MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(1).ItemSuffix).ModificationValue
                         End Select
                     End If
                 End If
             End If
-            If .EquippedObject(2).Object > 0 Then    ' Shield
+            
+            'Shield
+            If .EquippedObject(2).Object > 0 Then
                 If .EquippedObject(2).ItemPrefix > 0 Then
                     Select Case ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationType
                     Case 8    'Max HP
@@ -2887,7 +2670,7 @@ Sub CalculateStats(Index As Long)
                     Case 11    'Damage
                         AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
                     Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
+                        DefenseTotal = DefenseTotal + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
                     Case 13    'Magic Defense
                         MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(2).ItemPrefix).ModificationValue
                     End Select
@@ -2903,12 +2686,14 @@ Sub CalculateStats(Index As Long)
                     Case 11    'Damage
                         AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
                     Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
+                        DefenseTotal = DefenseTotal + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
                     Case 13    'Magic Defense
                         MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(2).ItemSuffix).ModificationValue
                     End Select
                 End If
             End If
+            
+            'Armor and Helm
             For A = 3 To 4
                 If .EquippedObject(A).Object > 0 Then
                     If .EquippedObject(A).ItemPrefix > 0 Then
@@ -2922,7 +2707,7 @@ Sub CalculateStats(Index As Long)
                         Case 11    'Damage
                             AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
                         Case 12    'Defense
-                            RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
+                            DefenseTotal = DefenseTotal + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
                         Case 13    'Magic Defense
                             MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(A).ItemPrefix).ModificationValue
                         End Select
@@ -2938,16 +2723,18 @@ Sub CalculateStats(Index As Long)
                         Case 11    'Damage
                             AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
                         Case 12    'Defense
-                            RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
+                            DefenseTotal = DefenseTotal + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
                         Case 13    'Magic Defense
                             MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(A).ItemSuffix).ModificationValue
                         End Select
                     End If
-                    RunningTotal = RunningTotal + Object(.EquippedObject(A).Object).Data(1)
+                    DefenseTotal = DefenseTotal + Object(.EquippedObject(A).Object).Data(1)
                     MagicTotal = MagicTotal + Object(.EquippedObject(A).Object).Data(2)
                 End If
             Next A
-            If .EquippedObject(5).Object > 0 Then    'Ring
+            
+            'Ring
+            If .EquippedObject(5).Object > 0 Then
                 If .EquippedObject(5).ItemPrefix > 0 Then
                     Select Case ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationType
                     Case 8    'Max HP
@@ -2959,7 +2746,7 @@ Sub CalculateStats(Index As Long)
                     Case 11    'Damage
                         AttackTotal = AttackTotal + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
                     Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
+                        DefenseTotal = DefenseTotal + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
                     Case 13    'Magic Defense
                         MagicTotal = MagicTotal + ItemPrefix(.EquippedObject(5).ItemPrefix).ModificationValue
                     End Select
@@ -2975,7 +2762,7 @@ Sub CalculateStats(Index As Long)
                     Case 11    'Damage
                         AttackTotal = AttackTotal + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
                     Case 12    'Defense
-                        RunningTotal = RunningTotal + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
+                        DefenseTotal = DefenseTotal + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
                     Case 13    'Magic Defense
                         MagicTotal = MagicTotal + ItemSuffix(.EquippedObject(5).ItemSuffix).ModificationValue
                     End Select
@@ -2984,21 +2771,24 @@ Sub CalculateStats(Index As Long)
                     AttackTotal = AttackTotal + Object(.EquippedObject(5).Object).Data(2)
                 End If
                 If Object(.EquippedObject(5).Object).Data(0) = 1 Then    'Defense
-                    RunningTotal = RunningTotal + Object(.EquippedObject(5).Object).Data(2)
+                    DefenseTotal = DefenseTotal + Object(.EquippedObject(5).Object).Data(2)
                 End If
                 If Object(.EquippedObject(5).Object).Data(0) = 2 Then    'Magic Defense
                     MagicTotal = MagicTotal + Object(.EquippedObject(5).Object).Data(2)
                 End If
             End If
 
-            If RunningTotal > 255 Then RunningTotal = 255
+            'Cap Defenses
+            If DefenseTotal > 255 Then DefenseTotal = 255
             If MagicTotal > 255 Then MagicTotal = 255
 
-            .TotalDefense = RunningTotal
+            .TotalDefense = DefenseTotal
             .MagicDefense = MagicTotal
-            '''
 
+            ''''HP/Mana
+            Dim TempVar As Double
 
+            '@todo Stat calculations, if we wanted to allow these to be done by script...
             'HP
             TempVar = Class(.Class).StartHP + CInt(CDbl(Class(.Class).MaxHP - Class(.Class).StartHP) * (CDbl(.Level) / CDbl(World.MaxLevel)))
             TotalMaxHP = TotalMaxHP + TempVar + CInt(World.StatConstitution)
@@ -3021,6 +2811,7 @@ Sub CalculateStats(Index As Long)
             .MaxEnergy = TotalMaxEnergy
             .MaxMana = TotalMaxMana
 
+            '@script CALCULATESTATS Not currently used
             'Parameter(0) = Index
             'RunScript "CALCULATESTATS"
 
@@ -3059,6 +2850,7 @@ Sub CalculateStats(Index As Long)
     End If
 End Sub
 
+'Looks like this removes the last word from a string, based on a space (chr(32))
 Function ClipString(St As String) As String
     Dim A As Long
     For A = Len(St) To 1 Step -1
@@ -3069,6 +2861,7 @@ Function ClipString(St As String) As String
     Next A
 End Function
 
+'Equips an object from the players inventory
 Sub EquipObject(Index As Long, Slot As Long)
     Dim A As Long, B As Long, C As Long, D As Long, E As Long, F As Long
     With Player(Index)
@@ -3200,6 +2993,7 @@ Sub EquipObject(Index As Long, Slot As Long)
     End With
 End Sub
 
+'Unequips an object
 Sub UnEquipObject(Index As Long, Slot As Long)
     Dim A As Long
     With Player(Index)
@@ -3241,11 +3035,14 @@ Sub UnEquipObject(Index As Long, Slot As Long)
     End With
 End Sub
 
+'Not sure this is being used, the logic seems questionable
+'Used in ProcessString Case 53, trade items
 Function FindUnEquipInvObject(Index As Long, ObjectNum As Long) As Long
     Dim A As Long
     With Player(Index)
         For A = 1 To 20
             If .Inv(A).Object = ObjectNum Then
+                'Why would the object number = an inventory slot?
                 If .EquippedObject(6).Object = A Then GoTo TheNextOne
                 FindUnEquipInvObject = A
                 Exit Function
@@ -3255,6 +3052,7 @@ TheNextOne:
     End With
 End Function
 
+'Sends a user information about their bank
 Sub SendBankData(Index As Long)
     Dim A As Long, St1 As String
     With Player(Index)
@@ -3268,6 +3066,8 @@ Sub SendBankData(Index As Long)
     End With
 End Sub
 
+'Processes data about bank transactions
+'ProcessString case 55
 Sub ProcessBankData(Index As Long, St As String)
     Dim A As Long, B As Long, C As Long, D As Long, E As Long
     With Player(Index)
@@ -3284,6 +3084,7 @@ Sub ProcessBankData(Index As Long, St As String)
                     Next E
                     If D >= 0 Then
                         Parameter(0) = Index
+                        '@script DROPOBJ - Maybe we should change this to "DEPOSITOBJ"
                         If RunScript("DROPOBJ" + CStr(.Inv(A).Object)) = 0 Then
                             If Not Object(.Inv(A).Object).Type = 6 Then
                                 .ItemBank(D).Object = .Inv(A).Object
@@ -3341,6 +3142,7 @@ Sub ProcessBankData(Index As Long, St As String)
                     If B > 0 Then    'Has Room
                         Parameter(0) = Index
                         Parameter(1) = .ItemBank(A).Value
+                        '@script GETOBJ maybe change to "WITHDRAWOBJ"
                         If RunScript("GETOBJ" + CStr(.ItemBank(A).Object)) = 0 Then
                             Select Case Object(.ItemBank(A).Object).Type
                             Case 6, 11
@@ -3417,6 +3219,7 @@ Sub ProcessBankData(Index As Long, St As String)
                     If D >= 0 Then
                         If B > 0 And .Inv(A).Value >= B Then
                             Parameter(0) = Index
+                            '@script DROPOBJ - Maybe we should change this to "DEPOSITOBJ"
                             If RunScript("DROPOBJ" + CStr(.Inv(A).Object)) = 0 Then
 
                                 If .ItemBank(D).Object > 0 And .ItemBank(D).Value > 0 Then
@@ -3458,6 +3261,7 @@ Sub ProcessBankData(Index As Long, St As String)
                         If C > 0 Then
                             Parameter(0) = Index
                             Parameter(1) = B
+                            '@script GETOBJ - Maybe we should change this to "WITHDRAWOBJ"
                             If RunScript("GETOBJ" + CStr(D)) = 0 Then
                                 .ItemBank(A).Value = .ItemBank(A).Value - B
                                 If .ItemBank(A).Value = 0 Then
@@ -3474,6 +3278,7 @@ Sub ProcessBankData(Index As Long, St As String)
                             If C > 0 Then
                                 Parameter(0) = Index
                                 Parameter(1) = B
+                                '@script GETOBJ - Maybe we should change this to "WITHDRAWOBJ"
                                 If RunScript("GETOBJ" + CStr(D)) = 0 Then
                                     .ItemBank(A).Value = .ItemBank(A).Value - B
                                     If .ItemBank(A).Value = 0 Then
@@ -3496,6 +3301,7 @@ Sub ProcessBankData(Index As Long, St As String)
     End With
 End Sub
 
+'Repairs a specific object in inventory
 Sub RepairItem(Index As Long)
     Dim A As Long, B As Long, C As Long
     With Player(Index)
@@ -3542,6 +3348,7 @@ Sub RepairItem(Index As Long)
     End With
 End Sub
 
+'Repairs all objects in inventory
 Sub RepairAll(Index As Long)
     Dim A As Long
     With Player(Index)
@@ -3733,12 +3540,15 @@ Sub SendServerOptions(Index As Long)
     SendSocket Index, Chr$(139) + Chr$(World.StatStrength) + Chr$(World.StatEndurance) + Chr$(World.StatIntelligence) + Chr$(World.StatConcentration) + Chr$(World.StatConstitution) + Chr$(World.StatStamina) + Chr$(World.StatWisdom) + Chr$(World.ObjMoney) + DoubleChar$(CLng(World.Cost_Per_Durability)) + DoubleChar$(CLng(World.Cost_Per_Strength)) + DoubleChar$(CLng(World.Cost_Per_Modifier)) + Chr$(World.GuildJoinLevel) + Chr$(World.GuildNewLevel) + QuadChar(World.GuildJoinPrice) + QuadChar(World.GuildNewPrice)
 End Sub
 
+'INI WriteString
 Sub WriteString(lpAppName, lpKeyName As String, A, Optional lpFileName As String = "odyssey.ini")
     Dim lpString As String, Valid As Long
     lpString = A
     Valid = WritePrivateProfileString&(lpAppName, lpKeyName, lpString, App.Path + "\" + lpFileName)
 End Sub
 
+'Removes a player from a guild
+'Works on name, assuming this is meant to be used if the player isn't online.
 Sub RemoveFromGuild(Name As String, TheGuild As Long)
     Dim A As Long
     A = FindGuildMember(Name, TheGuild)
@@ -3787,6 +3597,7 @@ Function getTime() As Currency
     getTime = timeGetTime
 End Function
 
+'Selects a random prefix
 Function RandomPrefix() As Byte
     Dim A As Long
     Dim TotalPrefixes As Long
@@ -3820,6 +3631,7 @@ Function RandomPrefix() As Byte
     End If
 End Function
 
+'Selects a random suffix
 Function RandomSuffix() As Byte
     Dim A As Long
     Dim TotalSuffixes As Long
