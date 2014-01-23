@@ -683,8 +683,10 @@ Sub JoinMap(Index As Long)
         End If
         SendToMapAllBut MapNum, Index, Chr$(8) + Chr$(Index) + Chr$(.X) + Chr$(.Y) + Chr$(.D) + DoubleChar$(CLng(.Sprite)) + Chr$(.Status)
 
-        Parameter(0) = Index
-        RunScript "JOINMAP" + CStr(MapNum)
+        '@script JOINMAP
+        Parameter(0) = MapNum
+        Parameter(1) = Index
+        RunScript "JOINMAP"
     End With
 End Sub
 
@@ -2832,6 +2834,7 @@ Sub CalculateStats(Index As Long)
                 SendSocket Index, Chr$(48) + Chr$(.Mana)
             End If
 
+            Dim StatsChanged As Boolean
             StatsChanged = False
 
             If Not OldMaxHP = .MaxHP Then StatsChanged = True
