@@ -1,8 +1,8 @@
 frmMain = 33, 33, 394, 363, , 0, 0, 753, 478, C
 frmLoading = -83, 62, 487, 218, C, 44, 44, 614, 229, C
-modServer = 614, 651, 1278, 858, 
+modServer = 243, 648, 907, 855, Z
 modWinsock = -94, 106, 558, 350, C
-modScript = 44, 44, 614, 220, Z
+modScript = 44, 44, 614, 220, 
 frmOptions = 46, 50, 416, 392, C, 44, 44, 525, 224, C
 modCompress = 176, 184, 751, 580, C
 modSecurity = 22, 23, 657, 414, C
