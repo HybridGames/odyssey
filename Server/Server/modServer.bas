@@ -1818,6 +1818,7 @@ TryAgain9:
 End Sub
 
 'Bit Wise Check
+'Returns a Byte, so check is if it equals 255 not boolean True
 Function ExamineBit(bytByte As Byte, Bit As Byte) As Byte
     ExamineBit = ((bytByte And (2 ^ Bit)) > 0)
 End Function

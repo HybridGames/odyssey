@@ -1,8 +1,9 @@
 Attribute VB_Name = "modCombat"
 Option Explicit
 
+'Calculates the damage a player's projectile will do
 Function ProjectileDamage(Index As Long) As Long
-    Dim A As Long, Damage As Long, Weapon As Long, Modifier As Long
+    Dim Durability As Long, Damage As Long, Weapon As Long, Modifier As Long
     With Player(Index)
         If .EquippedObject(1).Object > 0 Then
             'Uses Weapon
@@ -16,16 +17,25 @@ Function ProjectileDamage(Index As Long) As Long
             'Has Ring
             If Object(.EquippedObject(5).Object).Data(0) = 0 Then
                 Modifier = Object(.EquippedObject(5).Object).Data(2)
-                If Not ExamineBit(Object(.EquippedObject(5).Object).flags, 1) = 255 Then A = .EquippedObject(5).Value - 1 Else A = 1
                 Damage = Damage + Modifier
-                If A <= 0 Then
+                
+                'Looks like this affects Ring Durability
+                If Not ExamineBit(Object(.EquippedObject(5).Object).flags, 1) = 255 Then
+                    Durability = .EquippedObject(5).Value - 1
+                Else
+                    Durability = 1
+                End If
+                
+                If Durability <= 0 Then
                     'Object Is Destroyed
+                    '@todo Should this be a Script Event as well, DROPOBJ, BREAKOBJ?
                     SendSocket Index, Chr$(57) + Chr$(5)
                     .EquippedObject(5).Object = 0
                     .EquippedObject(5).ItemPrefix = 0
                     .EquippedObject(5).ItemSuffix = 0
+                    CalculateStats Index
                 Else
-                    .EquippedObject(5).Value = A
+                    .EquippedObject(5).Value = Durability
                 End If
             End If
         End If
@@ -42,6 +52,7 @@ Sub ProjectileAttackPlayer(Index As Long, A As Long)
                     If Player(A).Mode = modePlaying And Player(A).Map = .Map Then
                         If .Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
                             If Player(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
+                                '@script ATTACKPLAYER
                                 Parameter(0) = Index
                                 Parameter(1) = A
                                 If RunScript("ATTACKPLAYER") = 0 Then
@@ -64,6 +75,7 @@ Sub ProjectileAttackPlayer(Index As Long, A As Long)
                                     End If
                                     SendToMapRaw CLng(.Map), St
                                     If Player(A).HP = 0 Then
+                                        '@script KILLPLAYER
                                         Parameter(0) = Index
                                         Parameter(1) = A
                                         If RunScript("KILLPLAYER") = 0 Then
@@ -138,6 +150,7 @@ Sub ProjectileAttackMonster(Index As Long, A As Long)
             If ExamineBit(Map(.Map).flags, 5) = False Then
                 If A <= MaxMonsters Then
                     If Map(.Map).Monster(A).Monster > 0 Then
+                        '@script ATTACKMONSTER
                         Parameter(0) = Index
                         If RunScript("ATTACKMONSTER" + CStr(Map(.Map).Monster(A).Monster)) = 0 Then
                             With Monster(Map(.Map).Monster(A).Monster)
@@ -176,6 +189,7 @@ Sub ProjectileAttackMonster(Index As Long, A As Long)
                                         NewMapObject CLng(Player(Index).Map), E, Monster(.Monster).Value(D), CLng(.X), CLng(.Y), False
                                     End If
 
+                                    '@script MONSTERDIE
                                     Parameter(0) = Index
                                     RunScript "MONSTERDIE" + CStr(.Monster)
 
@@ -203,6 +217,7 @@ Sub MagicAttackPlayer(Index As Long, A As Long, MagicDamage As Long)
                     If Player(A).Mode = modePlaying And Player(A).Map = .Map Then
                         If .Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
                             If Player(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
+                                '@script ATTACKPLAYER
                                 Parameter(0) = Index
                                 Parameter(1) = A
                                 If RunScript("ATTACKPLAYER") = 0 Then
@@ -226,6 +241,7 @@ Sub MagicAttackPlayer(Index As Long, A As Long, MagicDamage As Long)
                                     End If
                                     SendToMapRaw CLng(.Map), St
                                     If Player(A).HP = 0 Then
+                                        '@script KILLPLAYER
                                         Parameter(0) = Index
                                         Parameter(1) = A
                                         If RunScript("KILLPLAYER") = 0 Then
@@ -299,6 +315,7 @@ Sub MagicAttackMonster(Index As Long, A As Long, MagicDamage As Long)
             If ExamineBit(Map(.Map).flags, 5) = False Then
                 If A <= MaxMonsters Then
                     If Map(.Map).Monster(A).Monster > 0 Then
+                        '@script ATTACKMONSTER
                         Parameter(0) = Index
                         If RunScript("ATTACKMONSTER" + CStr(Map(.Map).Monster(A).Monster)) = 0 Then
                             With Monster(Map(.Map).Monster(A).Monster)
@@ -337,6 +354,7 @@ Sub MagicAttackMonster(Index As Long, A As Long, MagicDamage As Long)
                                         NewMapObject CLng(Player(Index).Map), E, Monster(.Monster).Value(D), CLng(.X), CLng(.Y), False
                                     End If
 
+                                    '@script MONSTERDIE
                                     Parameter(0) = Index
                                     RunScript "MONSTERDIE" + CStr(.Monster)
 
