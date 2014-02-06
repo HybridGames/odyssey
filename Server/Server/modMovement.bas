@@ -88,6 +88,8 @@ Sub ProcessMovement(Index As Long, St As String, MapNum As Long)
                                 H = Sqr((CLng(.X) - E) ^ 2 + (CLng(.Y) - F) ^ 2)
                                 If H <= G Then
                                     Parameter(0) = Index
+                                    
+                                    '@script MONSTERSEE
                                     If RunScript("MONSTERSEE" + CStr(Map(MapNum).Monster(C).Monster)) = 0 Then
                                         With Map(MapNum).Monster(C)
                                             If Index <> .Target Then

@@ -685,56 +685,63 @@ Sub CombatAttackPlayer(Index As Long, A As Long, Damage As Long)
     End With
 End Sub
 
-Sub SendHPUpdate(Index As Long)
-    Dim A As Long
-    With Player(Index)
+'Sends a player's HP to all their allies on a given map
+Sub SendHPUpdate(Player As Long)
+    Dim OtherPlayer As Long
+    
+    With Player(Player)
         If .Guild > 0 Then
-            For A = 1 To MaxUsers
-                If Not A = Index Then
-                    If Player(A).InUse = True Then
-                        If Player(A).Map = .Map Then
-                            If Player(A).Guild > 0 Then
-                                If (Player(A).Guild = .Guild Or IsGuildAlly(.Guild, Player(A).Guild) = True) Then
-                                    SendSocket A, Chr$(150) + Chr$(Index) + Chr$(.HP)
+            For OtherPlayer = 1 To MaxUsers
+                If Not OtherPlayer = Player Then
+                    If Player(OtherPlayer).InUse = True Then
+                        If Player(OtherPlayer).Map = .Map Then
+                            If Player(OtherPlayer).Guild > 0 Then
+                                If (Player(OtherPlayer).Guild = .Guild Or IsGuildAlly(.Guild, Player(OtherPlayer).Guild) = True) Then
+                                    SendSocket OtherPlayer, Chr$(150) + Chr$(Player) + Chr$(.HP)
                                 End If
                             End If
 
-                            If Player(A).Access > 0 Then
-                                SendSocket A, Chr$(150) + Chr$(Index) + Chr$(.HP)
+                            If Player(OtherPlayer).Access > 0 Then
+                                SendSocket OtherPlayer, Chr$(150) + Chr$(Player) + Chr$(.HP)
                             End If
                         End If
                     End If
                 End If
-            Next A
+            Next OtherPlayer
         End If
     End With
 End Sub
 
+'Determines if a guild is allied
 Function IsGuildAlly(GuildIndex As Byte, Ally As Byte) As Boolean
-    Dim A As Long
-    For A = 0 To DeclarationCount
-        If Guild(GuildIndex).Declaration(A).Type = 0 Then
-            If Guild(GuildIndex).Declaration(A).Guild = Ally Then
+    Dim Declaration As Long
+    For Declaration = 0 To DeclarationCount
+        If Guild(GuildIndex).Declaration(Declaration).Type = 0 Then
+            If Guild(GuildIndex).Declaration(Declaration).Guild = Ally Then
                 IsGuildAlly = True
                 Exit Function
             End If
         End If
-    Next A
+    Next Declaration
+    
+    IsGuildAlly = False
 End Function
 
+'Not sure exactly what this is doing, trying to find the position in inventory of the projectile ammo?
 Function FindProjectileDamageSlot(Index As Long) As Long
-    Dim A As Long
-    For A = 1 To 20
-        If Player(Index).ProjectileDamage(A).Live = False Then
-            FindProjectileDamageSlot = A
+    Dim InvIndex As Long
+    For InvIndex = 1 To 20
+        If Player(Index).ProjectileDamage(InvIndex).Live = False Then
+            FindProjectileDamageSlot = InvIndex
             Exit Function
         Else
-            If Player(Index).ProjectileDamage(A).ShootTime + 10000 < getTime Then
-                FindProjectileDamageSlot = A
+            If Player(Index).ProjectileDamage(InvIndex).ShootTime + 10000 < getTime Then
+                FindProjectileDamageSlot = InvIndex
                 Exit Function
             End If
         End If
-    Next A
+    Next InvIndex
     
+    '@todo How does returning 1 make sense?
     FindProjectileDamageSlot = 1
 End Function
