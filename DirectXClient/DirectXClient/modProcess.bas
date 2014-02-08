@@ -300,6 +300,8 @@ Sub ProcessString(PacketID As Long, St As String)
             For A = 1 To MaxUsers
                 Player(A).HP = 0
             Next A
+            
+            'If Map = 0 then we're just logging in
             If CMap = 0 Then
                 Tick = timeGetTime
                 Character.LastMove = Tick
@@ -329,6 +331,7 @@ Sub ProcessString(PacketID As Long, St As String)
                 End If
                 PrintChat MOTDText, 11
             End If
+            
             SetMap Asc(Mid$(St, 1, 1)) * 256 + Asc(Mid$(St, 2, 1))
             CX = Asc(Mid$(St, 3, 1))
             CY = Asc(Mid$(St, 4, 1))
