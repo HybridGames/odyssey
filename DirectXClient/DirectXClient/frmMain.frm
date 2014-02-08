@@ -4658,7 +4658,7 @@ Private Sub Form_Resize()
     If Me.WindowState <> 1 Then
         picChatContainer.Height = Me.ScaleHeight - picChatContainer.Top - 5
         picChatContainer.Width = Me.ScaleWidth - picChatContainer.Left - 5
-        picChat.Width = picChatContainer.ScaleWidth
+        picChat.Width = picChatContainer.ScaleWidth / 2
         If picChat.Height - picChatContainer.ScaleHeight - ChatScrollBack < 0 Then
             ChatScrollBack = picChat.Height - picChatContainer.ScaleHeight
         End If

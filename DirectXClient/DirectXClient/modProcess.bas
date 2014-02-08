@@ -317,15 +317,17 @@ Sub ProcessString(PacketID As Long, St As String)
                 SetHP GetMaxHP
                 SetEnergy GetMaxEnergy
                 SetMana GetMaxMana
+                
+                LoadOptions
+                Load frmMain
+                
                 If B > 0 Then
                     St1 = Mid$(St1, 2)
                     PrintChat "Welcome to the Odyssey Online Classic!  There are " + CStr(B) + " other players online:" + St1, 15
                 Else
                     PrintChat "Welcome to the Odyssey Online Classic!  There are no other users currently online.", 15
                 End If
-                LoadOptions
                 PrintChat MOTDText, 11
-                Load frmMain
             End If
             SetMap Asc(Mid$(St, 1, 1)) * 256 + Asc(Mid$(St, 2, 1))
             CX = Asc(Mid$(St, 3, 1))

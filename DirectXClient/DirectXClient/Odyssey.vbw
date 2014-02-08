@@ -1,5 +1,5 @@
 modWinsock = 0, 0, 0, 0, C
-modOdyssey = 176, 176, 1473, 924, 
+modOdyssey = 46, 303, 1343, 1051, 
 frmAccount = 0, 0, 0, 0, C, 44, 44, 1032, 798, C
 frmWait = 0, 0, 988, 754, , 66, 66, 1054, 820, C
 frmNewCharacter = 242, 242, 1539, 990, , 88, 88, 1076, 842, C
@@ -26,7 +26,7 @@ modCompress = 82, 137, 1379, 885,
 modSecurity = 198, 198, 1495, 946, 
 modSkills = 0, 0, 0, 0, C
 modArray = 132, 132, 1429, 880, 
-modProcess = 44, 44, 1341, 792, 
+modProcess = 44, 44, 1341, 792, Z
 modCache = 0, 0, 0, 0, C
 frmMagic = 0, 0, 0, 0, C, 132, 132, 1120, 886, C
 frmScan = 0, 0, 0, 0, C, 154, 154, 1142, 908, C
