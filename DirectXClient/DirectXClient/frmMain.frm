@@ -4652,6 +4652,8 @@ Private Sub Form_Load()
     UnloadDirectDraw
     InitDirectDraw
     LoadSurfaces
+    
+    Form_Resize
 End Sub
 
 Private Sub Form_Resize()

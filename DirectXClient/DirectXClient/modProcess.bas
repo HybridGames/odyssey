@@ -325,9 +325,12 @@ Sub ProcessString(PacketID As Long, St As String)
                 
                 If B > 0 Then
                     St1 = Mid$(St1, 2)
-                    PrintChat "Welcome to the Odyssey Online Classic!  There are " + CStr(B) + " other players online:" + St1, 15
+                    PrintChat "Welcome to the Odyssey Online Classic!", 15
+                    PrintChat "There are " + CStr(B) + " other players online:", 15
+                    PrintChat St1, 15
                 Else
-                    PrintChat "Welcome to the Odyssey Online Classic!  There are no other users currently online.", 15
+                    PrintChat "Welcome to the Odyssey Online Classic!", 15
+                    PrintChat "There are no other users currently online.", 15
                 End If
                 PrintChat MOTDText, 11
             End If
