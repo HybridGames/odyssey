@@ -55,6 +55,7 @@ Module=modConstants; modConstants.bas
 Module=modFMod; modFMod.bas
 Form=frmEmail.frm
 Form=frmServerList.frm
+Module=modProcessEvents; modProcessEvents.bas
 IconForm="frmMain"
 Startup="frmServerList"
 HelpFile=""
