@@ -4,13 +4,22 @@ Begin VB.Form frmMain
    ClientHeight    =   5850
    ClientLeft      =   165
    ClientTop       =   735
-   ClientWidth     =   7500
+   ClientWidth     =   15390
    ControlBox      =   0   'False
    Icon            =   "frmMain.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   5850
-   ScaleWidth      =   7500
+   ScaleWidth      =   15390
    StartUpPosition =   3  'Windows Default
+   Begin VB.ListBox lstDebug 
+      Height          =   5715
+      ItemData        =   "frmMain.frx":000C
+      Left            =   7560
+      List            =   "frmMain.frx":000E
+      TabIndex        =   2
+      Top             =   0
+      Width           =   7815
+   End
    Begin VB.Timer tmrCloseScks 
       Interval        =   1000
       Left            =   1440
@@ -188,6 +197,12 @@ Begin VB.Form frmMain
       End
       Begin VB.Menu cmdCloseConnections 
          Caption         =   "Close All"
+      End
+   End
+   Begin VB.Menu mnuDebug 
+      Caption         =   "Debug"
+      Begin VB.Menu mnuDebugPacket 
+         Caption         =   "Log Packet IDs"
       End
    End
 End
@@ -1469,6 +1484,15 @@ Private Sub mnuDatabaseResetObjects_Click()
                 End With
             Next A
         End If
+    End If
+End Sub
+
+'Determines if we're printing packets
+Private Sub mnuDebugPacket_Click()
+    If mnuDebugPacket.Checked Then
+        mnuDebugPacket.Checked = False
+    Else
+        mnuDebugPacket.Checked = True
     End If
 End Sub
 

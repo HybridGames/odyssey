@@ -2429,6 +2429,15 @@ Sub PrintLog(St)
     End With
 End Sub
 
+'Prints info to the Debug Log
+Sub PrintDebugLive(Item)
+    With frmMain.lstLog
+        .AddItem Item
+        If .ListCount > 30 Then .RemoveItem 0
+        If .ListIndex = .ListCount - 2 Then .ListIndex = .ListCount - 1
+    End With
+End Sub
+
 '@todo Need to review
 Function AddSocketQue(Index As Long) As Integer
     Dim A As Integer

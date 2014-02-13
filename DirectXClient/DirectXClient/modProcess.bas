@@ -102,7 +102,7 @@ Sub ProcessString(PacketID As Long, St As String)
         modProcessEvents.SetMotd St
         
     Case 5    'Password Changed
-        modProcessEvents.PasswordChanges St
+        modProcessEvents.PasswordChanged St
 
     Case 6    'Player Joined Game
         modProcessEvents.PlayerJoinedGame St

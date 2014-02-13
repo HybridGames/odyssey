@@ -459,6 +459,10 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
     Dim Tick As Currency
     Tick = getTime()
 
+    If frmMain.mnuDebugPacket.Checked Then
+        PrintDebugLive ("[" + Index + "]: " + PacketID)
+    End If
+
     With Player(Index)
         MapNum = .Map
         Select Case .Mode
