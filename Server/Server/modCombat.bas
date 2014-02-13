@@ -686,23 +686,23 @@ Sub CombatAttackPlayer(Index As Long, A As Long, Damage As Long)
 End Sub
 
 'Sends a player's HP to all their allies on a given map
-Sub SendHPUpdate(Player As Long)
+Sub SendHPUpdate(PlayerIndex As Long)
     Dim OtherPlayer As Long
     
-    With Player(Player)
+    With Player(PlayerIndex)
         If .Guild > 0 Then
             For OtherPlayer = 1 To MaxUsers
-                If Not OtherPlayer = Player Then
+                If Not OtherPlayer = PlayerIndex Then
                     If Player(OtherPlayer).InUse = True Then
                         If Player(OtherPlayer).Map = .Map Then
                             If Player(OtherPlayer).Guild > 0 Then
                                 If (Player(OtherPlayer).Guild = .Guild Or IsGuildAlly(.Guild, Player(OtherPlayer).Guild) = True) Then
-                                    SendSocket OtherPlayer, Chr$(150) + Chr$(Player) + Chr$(.HP)
+                                    SendSocket OtherPlayer, Chr$(150) + Chr$(PlayerIndex) + Chr$(.HP)
                                 End If
                             End If
 
                             If Player(OtherPlayer).Access > 0 Then
-                                SendSocket OtherPlayer, Chr$(150) + Chr$(Player) + Chr$(.HP)
+                                SendSocket OtherPlayer, Chr$(150) + Chr$(PlayerIndex) + Chr$(.HP)
                             End If
                         End If
                     End If

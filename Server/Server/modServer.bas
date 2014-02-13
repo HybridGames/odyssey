@@ -2431,7 +2431,7 @@ End Sub
 
 'Prints info to the Debug Log
 Sub PrintDebugLive(Item)
-    With frmMain.lstLog
+    With frmMain.lstDebug
         .AddItem Item
         If .ListCount > 30 Then .RemoveItem 0
         If .ListIndex = .ListCount - 2 Then .ListIndex = .ListCount - 1

@@ -138,210 +138,37 @@ Sub ProcessString(PacketID As Long, St As String)
         modProcessEvents.Message St
 
     Case 17    'New Inv Object
-        If Len(St) = 9 Then
-            A = Asc(Mid$(St, 1, 1))
-            If A >= 1 And A <= 20 Then
-                With Character.Inv(A)
-                    .Object = GetInt(Mid$(St, 2, 2))
-                    .value = Asc(Mid$(St, 4, 1)) * 16777216 + Asc(Mid$(St, 5, 1)) * 65536 + Asc(Mid$(St, 6, 1)) * 256& + Asc(Mid$(St, 7, 1))
-                    .ItemPrefix = Asc(Mid$(St, 8, 1))
-                    .ItemSuffix = Asc(Mid$(St, 9, 1))
-                End With
-                If frmMain.picRepair.Visible = True Then
-                    DisplayRepair
-                ElseIf frmMain.picSellObject.Visible = True Then
-                    DisplaySell
-                End If
-                RefreshInventory
-            End If
-        End If
-
+        modProcessEvents.NewInventoryObject St
+        
     Case 18    'Erase Inv Object
-        If Len(St) = 1 Then
-            A = Asc(Mid$(St, 1, 1))
-            If A >= 1 And A <= 20 Then
-                With Character.Inv(A)
-                    If .EquippedNum > 0 And .Object > 0 Then
-                        If Object(.Object).Type = 10 Then
-                            Character.Projectile = False
-                        ElseIf Object(.Object).Type = 11 Then
-                            Character.Ammo = 0
-                        End If
-                    End If
-                    .Object = 0
-                    .ItemPrefix = 0
-                    .ItemSuffix = 0
-                    .value = 0
-                    .EquippedNum = 0
-                End With
-                If frmMain.picRepair.Visible = True Then
-                    DisplayRepair
-                ElseIf frmMain.picSellObject.Visible = True Then
-                    DisplaySell
-                End If
-                RefreshInventory
-            End If
-        End If
+        modProcessEvents.EraseInventoryObject St
 
     Case 19    'Use Object
-        If Len(St) >= 1 Then
-            A = Asc(Mid$(St, 1, 1))
-            If A >= 1 And A <= 20 Then
-                If Character.Inv(A).Object > 0 Then
-                    Select Case Object(Character.Inv(A).Object).Type
-                    Case 2, 3, 4    'Armor pieces
-                        Character.EquippedObject(Object(Character.Inv(A).Object).Type).Object = Character.Inv(A).Object
-                        Character.EquippedObject(Object(Character.Inv(A).Object).Type).value = Character.Inv(A).value
-                        Character.EquippedObject(Object(Character.Inv(A).Object).Type).ItemPrefix = Character.Inv(A).ItemPrefix
-                        Character.EquippedObject(Object(Character.Inv(A).Object).Type).ItemSuffix = Character.Inv(A).ItemSuffix
-                        Character.Inv(A).Object = 0
-                        Character.Inv(A).value = 0
-                        Character.Inv(A).ItemPrefix = 0
-                        Character.Inv(A).ItemSuffix = 0
-                    Case 8    'Ring
-                        Character.EquippedObject(5).Object = Character.Inv(A).Object
-                        Character.EquippedObject(5).value = Character.Inv(A).value
-                        Character.EquippedObject(5).ItemPrefix = Character.Inv(A).ItemPrefix
-                        Character.EquippedObject(5).ItemSuffix = Character.Inv(A).ItemSuffix
-                        Character.Inv(A).Object = 0
-                        Character.Inv(A).value = 0
-                        Character.Inv(A).ItemPrefix = 0
-                        Character.Inv(A).ItemSuffix = 0
-                    Case 1    'Weapons
-                        Character.EquippedObject(1).Object = Character.Inv(A).Object
-                        Character.EquippedObject(1).value = Character.Inv(A).value
-                        Character.EquippedObject(1).ItemPrefix = Character.Inv(A).ItemPrefix
-                        Character.EquippedObject(1).ItemSuffix = Character.Inv(A).ItemSuffix
-                        Character.Inv(A).Object = 0
-                        Character.Inv(A).value = 0
-                        Character.Inv(A).ItemPrefix = 0
-                        Character.Inv(A).ItemSuffix = 0
-                        Character.Projectile = False
-                    Case 10    'Projectile Weapon
-                        Character.EquippedObject(1).Object = Character.Inv(A).Object
-                        Character.EquippedObject(1).value = Character.Inv(A).value
-                        Character.EquippedObject(1).ItemPrefix = Character.Inv(A).ItemPrefix
-                        Character.EquippedObject(1).ItemSuffix = Character.Inv(A).ItemSuffix
-                        Character.Inv(A).Object = 0
-                        Character.Inv(A).value = 0
-                        Character.Inv(A).ItemPrefix = 0
-                        Character.Inv(A).ItemSuffix = 0
-                        Character.Projectile = True
-                    Case 11    'Ammo (Stays in inventory)
-                        Character.Ammo = A
-                        Character.Inv(A).EquippedNum = A
-                    End Select
-                    RefreshInventory
-                End If
-            End If
-        End If
+        modProcessEvents.UseObject St
 
     Case 20    'Stop using object
-        If Len(St) = 1 Then
-            A = Asc(Mid$(St, 1, 1))
-            If A >= 1 And A <= 20 Then
-                If Character.Inv(A).Object > 0 Then
-                    Character.Inv(A).EquippedNum = False
-                    If Object(Character.Inv(A).Object).Type = 10 Then Character.Projectile = False
-                    If Object(Character.Inv(A).Object).Type = 11 Then Character.Ammo = 0
-                    RefreshInventory
-                End If
-            Else
-                If A >= 21 Then    'Ok
-                    A = A - 20
-                    If Character.EquippedObject(A).Object > 0 Then
-                        If Object(Character.EquippedObject(A).Object).Type = 10 Then Character.Projectile = False
-                        Character.EquippedObject(A).Object = 0
-                        Character.EquippedObject(A).value = 0
-                        Character.EquippedObject(A).ItemPrefix = 0
-                        Character.EquippedObject(A).ItemSuffix = 0
-                        RefreshInventory
-                    End If
-                End If
-            End If
-        End If
+        modProcessEvents.StopUsingObject St
 
     Case 21    'Map Data
         ProcessReceivedMap St
 
     Case 24    'Joined Game
-        If frmWait_Loaded = True Then
-            frmWait.lblStatus = "Loading Game ..."
-            frmWait.lblStatus.Refresh
-        End If
-        For A = 1 To MaxUsers
-            Player(A).Map = 0
-        Next A
-        With Character
-            For A = 1 To MaxInvObjects
-                With .Inv(A)
-                    .Object = 0
-                    .EquippedNum = 0
-                    .value = 0
-                    .ItemPrefix = 0
-                    .ItemSuffix = 0
-                End With
-            Next A
-            For A = 1 To 5
-                .EquippedObject(A).Object = 0
-                .EquippedObject(A).value = 0
-                .EquippedObject(A).ItemPrefix = 0
-                .EquippedObject(A).ItemSuffix = 0
-            Next A
-        End With
-        Load frmMain
-        frmMain.WindowState = 0
-        SetHP GetMaxHP
-        SetMana GetMaxMana
-        SetEnergy GetMaxEnergy
-        DrawStats
-        RedrawMap = True
-        If Character.Level = 1 Then frmMain.picHelp.Visible = True
-        blnPlaying = True
-        ResetTimers
+        modProcessEvents.JoinedGame St
 
     Case 25    'Tell
-        If Len(St) >= 2 Then
-            A = Asc(Mid$(St, 1, 1))
-            If A >= 1 Then
-                With Player(A)
-                    If .Ignore = False Then
-                        PrintChat .name + " tells you, " + Chr$(34) + Mid$(St, 2) + Chr$(34), 10
-                    End If
-                End With
-            End If
-        End If
+        modProcessEvents.Tell St
 
     Case 26    'Broadcast
-        If Len(St) >= 2 And options.Broadcasts = True Then
-            A = Asc(Mid$(St, 1, 1))
-            If A >= 1 Then
-                If Player(A).Ignore = False Then
-                    PrintChat Player(A).name + ": " + Mid$(St, 2), 13
-                End If
-            End If
-        End If
+        modProcessEvents.Broadcast St
 
     Case 27    'Emote
-        If Len(St) >= 2 Then
-            A = Asc(Mid$(St, 1, 1))
-            If Player(A).Ignore = False Then
-                PrintChat Player(A).name + " " + Mid$(St, 2), 11
-            End If
-        End If
+        modProcessEvents.Emote St
 
     Case 28    'Yell
-        If Len(St) >= 2 Then
-            A = Asc(Mid$(St, 1, 1))
-            If Player(A).Ignore = False Then
-                PrintChat Player(A).name + " yells, " + Chr$(34) + Mid$(St, 2) + Chr$(34), 7
-            End If
-        End If
+        modProcessEvents.Yell St
 
     Case 30    'Server Message
-        If Len(St) > 0 Then
-            PrintChat "Server Message: " + St, 9
-        End If
+        modProcessEvents.ServerMessage St
 
     Case 31    'Object Data
         If Len(St) >= 10 Then

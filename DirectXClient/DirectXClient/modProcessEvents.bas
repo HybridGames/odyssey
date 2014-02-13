@@ -502,3 +502,244 @@ Sub Message(Data As String)
         End Select
     End If
 End Sub
+
+'Updates character's inventory
+Sub NewInventoryObject(Data As String)
+    Dim InvIndex As Long
+
+    If Len(Data) = 9 Then
+        InvIndex = Asc(Mid$(Data, 1, 1))
+        If InvIndex >= 1 And InvIndex <= 20 Then
+            With Character.Inv(InvIndex)
+                .Object = GetInt(Mid$(Data, 2, 2))
+                .value = Asc(Mid$(Data, 4, 1)) * 16777216 + Asc(Mid$(Data, 5, 1)) * 65536 + Asc(Mid$(Data, 6, 1)) * 256& + Asc(Mid$(Data, 7, 1))
+                .ItemPrefix = Asc(Mid$(Data, 8, 1))
+                .ItemSuffix = Asc(Mid$(Data, 9, 1))
+            End With
+            If frmMain.picRepair.Visible = True Then
+                DisplayRepair
+            ElseIf frmMain.picSellObject.Visible = True Then
+                DisplaySell
+            End If
+            RefreshInventory
+        End If
+    End If
+End Sub
+
+'Removes an item from inventory
+Sub EraseInventoryObject(Data As String)
+    Dim InvIndex As Long
+
+    If Len(Data) = 1 Then
+        InvIndex = Asc(Mid$(Data, 1, 1))
+        If InvIndex >= 1 And InvIndex <= 20 Then
+            With Character.Inv(InvIndex)
+                If .EquippedNum > 0 And .Object > 0 Then
+                    If Object(.Object).Type = 10 Then
+                        Character.Projectile = False
+                    ElseIf Object(.Object).Type = 11 Then
+                        Character.Ammo = 0
+                    End If
+                End If
+                .Object = 0
+                .ItemPrefix = 0
+                .ItemSuffix = 0
+                .value = 0
+                .EquippedNum = 0
+            End With
+            If frmMain.picRepair.Visible = True Then
+                DisplayRepair
+            ElseIf frmMain.picSellObject.Visible = True Then
+                DisplaySell
+            End If
+            RefreshInventory
+        End If
+    End If
+End Sub
+
+'Use Object
+Sub UseObject(Data As String)
+    Dim InvIndex As Long
+
+    If Len(Data) >= 1 Then
+        InvIndex = Asc(Mid$(Data, 1, 1))
+        If InvIndex >= 1 And InvIndex <= 20 Then
+            If Character.Inv(InvIndex).Object > 0 Then
+                Select Case Object(Character.Inv(InvIndex).Object).Type
+                Case 2, 3, 4    'Armor pieces
+                    Character.EquippedObject(Object(Character.Inv(InvIndex).Object).Type).Object = Character.Inv(InvIndex).Object
+                    Character.EquippedObject(Object(Character.Inv(InvIndex).Object).Type).value = Character.Inv(InvIndex).value
+                    Character.EquippedObject(Object(Character.Inv(InvIndex).Object).Type).ItemPrefix = Character.Inv(InvIndex).ItemPrefix
+                    Character.EquippedObject(Object(Character.Inv(InvIndex).Object).Type).ItemSuffix = Character.Inv(InvIndex).ItemSuffix
+                    Character.Inv(InvIndex).Object = 0
+                    Character.Inv(InvIndex).value = 0
+                    Character.Inv(InvIndex).ItemPrefix = 0
+                    Character.Inv(InvIndex).ItemSuffix = 0
+                Case 8    'Ring
+                    Character.EquippedObject(5).Object = Character.Inv(InvIndex).Object
+                    Character.EquippedObject(5).value = Character.Inv(InvIndex).value
+                    Character.EquippedObject(5).ItemPrefix = Character.Inv(InvIndex).ItemPrefix
+                    Character.EquippedObject(5).ItemSuffix = Character.Inv(InvIndex).ItemSuffix
+                    Character.Inv(InvIndex).Object = 0
+                    Character.Inv(InvIndex).value = 0
+                    Character.Inv(InvIndex).ItemPrefix = 0
+                    Character.Inv(InvIndex).ItemSuffix = 0
+                Case 1    'Weapons
+                    Character.EquippedObject(1).Object = Character.Inv(InvIndex).Object
+                    Character.EquippedObject(1).value = Character.Inv(InvIndex).value
+                    Character.EquippedObject(1).ItemPrefix = Character.Inv(InvIndex).ItemPrefix
+                    Character.EquippedObject(1).ItemSuffix = Character.Inv(InvIndex).ItemSuffix
+                    Character.Inv(InvIndex).Object = 0
+                    Character.Inv(InvIndex).value = 0
+                    Character.Inv(InvIndex).ItemPrefix = 0
+                    Character.Inv(InvIndex).ItemSuffix = 0
+                    Character.Projectile = False
+                Case 10    'Projectile Weapon
+                    Character.EquippedObject(1).Object = Character.Inv(InvIndex).Object
+                    Character.EquippedObject(1).value = Character.Inv(InvIndex).value
+                    Character.EquippedObject(1).ItemPrefix = Character.Inv(InvIndex).ItemPrefix
+                    Character.EquippedObject(1).ItemSuffix = Character.Inv(InvIndex).ItemSuffix
+                    Character.Inv(InvIndex).Object = 0
+                    Character.Inv(InvIndex).value = 0
+                    Character.Inv(InvIndex).ItemPrefix = 0
+                    Character.Inv(InvIndex).ItemSuffix = 0
+                    Character.Projectile = True
+                Case 11    'Ammo (Stays in inventory)
+                    Character.Ammo = InvIndex
+                    Character.Inv(InvIndex).EquippedNum = InvIndex
+                End Select
+                RefreshInventory
+            End If
+        End If
+    End If
+End Sub
+
+'Stop Using, unequip
+Sub StopUsingObject(Data As String)
+    Dim InvIndex As Long
+
+    If Len(Data) = 1 Then
+        InvIndex = Asc(Mid$(Data, 1, 1))
+        If InvIndex >= 1 And InvIndex <= 20 Then
+            If Character.Inv(InvIndex).Object > 0 Then
+                Character.Inv(InvIndex).EquippedNum = False
+                If Object(Character.Inv(InvIndex).Object).Type = 10 Then Character.Projectile = False
+                If Object(Character.Inv(InvIndex).Object).Type = 11 Then Character.Ammo = 0
+                RefreshInventory
+            End If
+        Else
+            If InvIndex >= 21 Then    'Ok
+                InvIndex = InvIndex - 20
+                If Character.EquippedObject(InvIndex).Object > 0 Then
+                    If Object(Character.EquippedObject(InvIndex).Object).Type = 10 Then Character.Projectile = False
+                    Character.EquippedObject(InvIndex).Object = 0
+                    Character.EquippedObject(InvIndex).value = 0
+                    Character.EquippedObject(InvIndex).ItemPrefix = 0
+                    Character.EquippedObject(InvIndex).ItemSuffix = 0
+                    RefreshInventory
+                End If
+            End If
+        End If
+    End If
+End Sub
+
+'This Player has joined the game
+Sub JoinedGame(Data As String)
+    Dim A As Long
+
+    If frmWait_Loaded = True Then
+        frmWait.lblStatus = "Loading Game ..."
+        frmWait.lblStatus.Refresh
+    End If
+    For A = 1 To MaxUsers
+        Player(A).Map = 0
+    Next A
+    With Character
+        For A = 1 To MaxInvObjects
+            With .Inv(A)
+                .Object = 0
+                .EquippedNum = 0
+                .value = 0
+                .ItemPrefix = 0
+                .ItemSuffix = 0
+            End With
+        Next A
+        For A = 1 To 5
+            .EquippedObject(A).Object = 0
+            .EquippedObject(A).value = 0
+            .EquippedObject(A).ItemPrefix = 0
+            .EquippedObject(A).ItemSuffix = 0
+        Next A
+    End With
+    Load frmMain
+    frmMain.WindowState = 0
+    SetHP GetMaxHP
+    SetMana GetMaxMana
+    SetEnergy GetMaxEnergy
+    DrawStats
+    RedrawMap = True
+    If Character.Level = 1 Then frmMain.picHelp.Visible = True
+    blnPlaying = True
+    ResetTimers
+End Sub
+
+'Tell message /t
+Sub Tell(Data As String)
+    Dim PlayerIndex As Long
+
+    If Len(Data) >= 2 Then
+        PlayerIndex = Asc(Mid$(Data, 1, 1))
+        If PlayerIndex >= 1 Then
+            With Player(PlayerIndex)
+                If .Ignore = False Then
+                    PrintChat .name + " tells you, " + Chr$(34) + Mid$(Data, 2) + Chr$(34), 10
+                End If
+            End With
+        End If
+    End If
+End Sub
+
+'Broadcast message
+Sub Broadcast(Data As String)
+    Dim PlayerIndex As Long
+
+    If Len(Data) >= 2 And options.Broadcasts = True Then
+        PlayerIndex = Asc(Mid$(Data, 1, 1))
+        If PlayerIndex >= 1 Then
+            If Player(PlayerIndex).Ignore = False Then
+                PrintChat Player(PlayerIndex).name + ": " + Mid$(Data, 2), 13
+            End If
+        End If
+    End If
+End Sub
+
+'Emote
+Sub Emote(Data As String)
+    Dim PlayerIndex As Long
+
+    If Len(Data) >= 2 Then
+        PlayerIndex = Asc(Mid$(Data, 1, 1))
+        If Player(PlayerIndex).Ignore = False Then
+            PrintChat Player(PlayerIndex).name + " " + Mid$(Data, 2), 11
+        End If
+    End If
+End Sub
+
+'Yell Message
+Sub Yell(Data As String)
+    Dim PlayerIndex As Long
+    
+    If Len(Data) >= 2 Then
+        PlayerIndex = Asc(Mid$(Data, 1, 1))
+        If Player(PlayerIndex).Ignore = False Then
+            PrintChat Player(PlayerIndex).name + " yells, " + Chr$(34) + Mid$(Data, 2) + Chr$(34), 7
+        End If
+    End If
+End Sub
+
+'Server wide message
+Sub ServerMessage(Data As String)
+    If Len(Data) > 0 Then
+        PrintChat "Server Message: " + Data, 9
+    End If
+End Sub

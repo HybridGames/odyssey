@@ -459,8 +459,9 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
     Dim Tick As Currency
     Tick = getTime()
 
+    'Immediate debugging log of packets
     If frmMain.mnuDebugPacket.Checked Then
-        PrintDebugLive ("[" + Index + "]: " + PacketID)
+        PrintDebugLive "Packet: [" & Index & "] " & PacketID
     End If
 
     With Player(Index)

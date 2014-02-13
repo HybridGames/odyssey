@@ -202,7 +202,7 @@ Begin VB.Form frmMain
    Begin VB.Menu mnuDebug 
       Caption         =   "Debug"
       Begin VB.Menu mnuDebugPacket 
-         Caption         =   "Log Packet IDs"
+         Caption         =   "Log All Packets"
       End
    End
 End
