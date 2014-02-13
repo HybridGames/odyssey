@@ -4,12 +4,12 @@ Begin VB.Form frmMain
    ClientHeight    =   5850
    ClientLeft      =   165
    ClientTop       =   735
-   ClientWidth     =   15390
+   ClientWidth     =   11235
    ControlBox      =   0   'False
    Icon            =   "frmMain.frx":0000
    LinkTopic       =   "Form1"
    ScaleHeight     =   5850
-   ScaleWidth      =   15390
+   ScaleWidth      =   11235
    StartUpPosition =   3  'Windows Default
    Begin VB.ListBox lstDebug 
       Height          =   5715
@@ -18,7 +18,7 @@ Begin VB.Form frmMain
       List            =   "frmMain.frx":000E
       TabIndex        =   2
       Top             =   0
-      Width           =   7815
+      Width           =   3615
    End
    Begin VB.Timer tmrCloseScks 
       Interval        =   1000
@@ -741,10 +741,12 @@ End Sub
 
 Private Sub Form_Resize()
     If Not Me.WindowState = 1 Then
-        lstLog.Width = Me.ScaleWidth
+        lstLog.Width = Me.ScaleWidth - lstDebug.Width
         lstLog.Height = Me.ScaleHeight - txtMessage.Height
+        lstDebug.Left = lstLog.Width
+        lstDebug.Height = Me.ScaleHeight
         txtMessage.Top = lstLog.Height
-        txtMessage.Width = Me.ScaleWidth
+        txtMessage.Width = Me.ScaleWidth - lstDebug.Width
     End If
 End Sub
 
