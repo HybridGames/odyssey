@@ -173,7 +173,7 @@ Sub PlayerLeftGame(Data As String)
                 If Not .status = 25 Then
                     PrintChat .name + " has left the game!", 3
                 End If
-                PlayerLeftMap PlayerIndex
+                modOdyssey.PlayerLeftMap PlayerIndex
                 .Sprite = 0
                 .IsDead = False
             End With
@@ -197,7 +197,7 @@ Sub PlayerJoinedMap(Data As String)
             .XO = .X * 32
             .YO = .Y * 32
             AddPlayerLight PlayerIndex
-            .PlayerIndex = 0
+            .A = 0
         End With
     End If
 End Sub
@@ -209,7 +209,7 @@ Sub PlayerLeftMap(Data As String)
     If Len(St) = 1 Then
         PlayerIndex = Asc(Mid$(St, 1, 1))
         If PlayerIndex >= 1 Then
-            PlayerLeftMap PlayerIndex
+            modOdyssey.PlayerLeftMap PlayerIndex
             RemovePlayerLight PlayerIndex
         End If
     End If
@@ -257,7 +257,7 @@ Sub JoinMap(Data As String)
     Dim A As Long
     Dim PlayerCount As Long
 
-    If Len(St) = 13 Then
+    If Len(Data) = 13 Then
         If MapEdit = True Then CloseMapEdit
         'Destroy Projectiles
         For A = 1 To MaxProjectiles
@@ -307,10 +307,10 @@ Sub JoinMap(Data As String)
             PrintChat MOTDText, 11
         End If
         
-        SetMap Asc(Mid$(St, 1, 1)) * 256 + Asc(Mid$(St, 2, 1))
-        CX = Asc(Mid$(St, 3, 1))
-        CY = Asc(Mid$(St, 4, 1))
-        CDir = Asc(Mid$(St, 5, 1))
+        SetMap Asc(Mid$(Data, 1, 1)) * 256 + Asc(Mid$(Data, 2, 1))
+        CX = Asc(Mid$(Data, 3, 1))
+        CY = Asc(Mid$(Data, 4, 1))
+        CDir = Asc(Mid$(Data, 5, 1))
         CXO = CX * 32
         CYO = CY * 32
         
@@ -336,7 +336,7 @@ Sub JoinMap(Data As String)
         Freeze = True
         LoadMapFromCache CMap
         If RequestedMap = False Then
-            If Map.Version <> Asc(Mid$(St, 6, 1)) * 16777216 + Asc(Mid$(St, 7, 1)) * 65536 + Asc(Mid$(St, 8, 1)) * 256& + Asc(Mid$(St, 9, 1)) Or CheckSum(MapData) <> Asc(Mid$(St, 10, 1)) * 16777216 + Asc(Mid$(St, 11, 1)) * 65536 + Asc(Mid$(St, 12, 1)) * 256& + Asc(Mid$(St, 13, 1)) Then
+            If Map.Version <> Asc(Mid$(Data, 6, 1)) * 16777216 + Asc(Mid$(Data, 7, 1)) * 65536 + Asc(Mid$(Data, 8, 1)) * 256& + Asc(Mid$(Data, 9, 1)) Or CheckSum(MapData) <> Asc(Mid$(Data, 10, 1)) * 16777216 + Asc(Mid$(Data, 11, 1)) * 65536 + Asc(Mid$(Data, 12, 1)) * 256& + Asc(Mid$(Data, 13, 1)) Then
                 RequestedMap = True
                 SendSocket Chr$(45)
             Else

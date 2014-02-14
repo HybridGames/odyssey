@@ -290,6 +290,7 @@ ReloadData:
 
     If World.LastUpdate > CLng(Date) Or Abs(World.LastUpdate - CLng(Date)) >= 30 Then
         If MsgBox("Please verify that your system date and time is set correctly -- click ok to go on.", vbOKCancel, TitleString) = vbCancel Then
+            '@TODO This looks like it's deleting old .dat files by writing the emptiness over what was there
             ShutdownServer
             End
         End If
