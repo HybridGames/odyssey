@@ -1,12 +1,15 @@
 Attribute VB_Name = "modDebug"
 'Simple method now designed to write out to a static log file
-Public Sub writeLog(log As String)
-    Dim LogFile As Integer
-    LogFile = FreeFile
+Public Sub WriteLog(log As String)
+    Open "debug.log" For Output As #1
     
-    Open "debug.log" For Input As LogFile
+    Print #1, log
     
-    Print LogFile, log
-    
-    Close LogFile
+    Close #1
+End Sub
+
+'Allows for logging to display, as well as writing to the log
+Public Sub DisplayLog(log As String)
+    WriteLog log
+    PrintChat log, YELLOW
 End Sub

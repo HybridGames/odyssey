@@ -82,6 +82,9 @@ End Sub
 Sub UploadMap()
     Dim TheMapData As String, St1 As String * 30
     Dim X As Long, Y As Long
+    
+    DisplayLog "Upload Map()"
+    
     With EditMap
         If .Version < 2147483647 Then
             .Version = .Version + 1

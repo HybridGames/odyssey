@@ -183,7 +183,8 @@ Private Sub Form_Load()
     ServerDescription = "Classic"
     CacheDirectory = "classic"
     'ServerIP = "208.79.77.39"
-    ServerIP = "127.0.0.1"
+    'ServerIP = "127.0.0.1"
+    ServerIP = "100.1.216.221"
     ServerPort = 5750
     Unload Me
     InitializeGame

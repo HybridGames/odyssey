@@ -461,7 +461,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
 
     'Immediate debugging log of packets
     If frmMain.mnuDebugPacket.Checked Then
-        PrintDebugLive "Packet: [" & Index & "] " & PacketID
+        PrintDebugLive "Packet: [" & Index & "] " & PacketID & " Len=" & Len(St)
     End If
 
     With Player(Index)
@@ -1417,9 +1417,12 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                 End If
 
             Case 12    'Upload Map
+                PrintLog ("Upload Map: " & Len(St))
                 If Len(St) = 2677 And .Access >= 1 Then
                     PrintGod .User, " (Change Map) Map: " + CStr(.Map) + " - " + Map(.Map).Name + " - Objects: " + GetMapObjectList(.Map) + " - Warps: " + GetMapWarpList(.Map)
                     St2 = CompressString(St)
+                    PrintLog ("Upload Map: Decompressed")
+                    
                     MapRS.Seek "=", MapNum
                     If MapRS.NoMatch Then
                         MapRS.AddNew
@@ -1429,7 +1432,10 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                     End If
                     MapRS!Data = St2
                     MapRS.Update
+                    PrintLog ("Upload Map: MapRS Updated")
+                    
                     LoadMap MapNum, St
+                    PrintLog ("Upload Map: LoadMap")
                     For A = 0 To 9
                         Map(MapNum).Door(A).Att = 0
                     Next A

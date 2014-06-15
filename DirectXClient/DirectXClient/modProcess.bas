@@ -1984,6 +1984,8 @@ End Function
 Sub ProcessReceivedMap(St As String)
     On Error GoTo FailedToLoad
 
+    DisplayLog "Map Data Received"
+
     RequestedMap = False
 
     MapData = UncompressString$(St)

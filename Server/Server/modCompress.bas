@@ -8,9 +8,9 @@ Public Enum ZCompressLevels
     Z_DEFAULT_COMPRESSION = (-1)
 End Enum
 
-Private Declare Function Compress Lib "zlib.dll" Alias "compress2" (ByRef DestinationArray As Byte, ByRef destLen As Long, ByRef SourceArray As Byte, ByVal SourceLen As Long, ByVal CompressionLevel As Long) As Long
-Private Declare Function ZCompress Lib "zlib.dll" Alias "compress" (dest As Any, destLen As Any, src As Any, ByVal srcLen As Long) As Long
-Private Declare Function ZUncompress Lib "zlib.dll" Alias "uncompress" (dest As Any, destLen As Any, src As Any, ByVal srcLen As Long) As Long
+Private Declare Function Compress Lib "odyzlib.dll" Alias "compress2" (ByRef DestinationArray As Byte, ByRef destLen As Long, ByRef SourceArray As Byte, ByVal SourceLen As Long, ByVal CompressionLevel As Long) As Long
+Private Declare Function ZCompress Lib "odyzlib.dll" Alias "compress" (dest As Any, destLen As Any, src As Any, ByVal srcLen As Long) As Long
+Private Declare Function ZUncompress Lib "odyzlib.dll" Alias "uncompress" (dest As Any, destLen As Any, src As Any, ByVal srcLen As Long) As Long
 Private Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (hpvDest As Any, hpvSource As Any, ByVal cbCopy As Long)
 Private Declare Function Uncompress Lib "zlib.dll" Alias "uncompress" (ByRef DestinationArray As Byte, ByRef destLen As Long, ByRef SourceArray As Byte, ByVal SourceLen As Long) As Long
 Public Function ZCompressByteArray(ByRef ArrayToCompress() As Byte, _
@@ -327,7 +327,13 @@ Public Function CompressString(Data, Optional Key)
         lKey = UBound(bData) + 1    'get data size
         lCSz = lKey + (lKey * 0.01) + 12    'estimate compressed size
         ReDim bRet(lCSz - 1)    'allocate output buffer
+        
+        PrintLog ("CompressString: Before ZCompress")
+        
         Call ZCompress(bRet(0), lCSz, bData(0), lKey)    'compress data (lCSz returns actual size)
+        
+        PrintLog ("CompressString: After ZCompress")
+        
         ReDim Preserve bRet(lCSz - 1)    'resize output buffer to actual size
         Erase bData    'deallocate data buffer
         If IsMissing(Key) Then    'if Key variable not supplied
