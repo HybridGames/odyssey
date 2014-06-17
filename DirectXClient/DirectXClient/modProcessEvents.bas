@@ -382,6 +382,67 @@ Sub NewMapObject(Data As String)
     End If
 End Sub
 
+'Object Data
+Sub ObjectData(Data As String)
+    Dim ObjIndex As Long
+    Dim LoopIndex As Long
+
+    If Len(Data) >= 10 Then
+        ObjIndex = GetInt(Mid$(Data, 1, 2))
+        If ObjIndex >= 1 Then
+            With Object(ObjIndex)
+                .Picture = Asc(Mid$(Data, 3, 1)) * 256 + Asc(Mid$(Data, 4, 1))
+                .Type = Asc(Mid$(Data, 5, 1))
+                Select Case .Type
+                Case 8    'Ring
+                    .MaxDur = Asc(Mid$(Data, 7, 1))
+                    .Data2 = Asc(Mid$(Data, 6, 1))
+                    .Modifier = Asc(Mid$(Data, 8, 1))
+                Case 10, 11    'Projectile Weapon
+                    .Modifier = Asc(Mid$(Data, 6, 1))
+                    .Data2 = Asc(Mid$(Data, 8, 1))
+                Case Else
+                    .MaxDur = Asc(Mid$(Data, 6, 1))
+                    .Modifier = Asc(Mid$(Data, 7, 1))
+                    .Data2 = Asc(Mid$(Data, 8, 1))
+                End Select
+                .flags = Asc(Mid$(Data, 9, 1))
+                .ClassReq = Asc(Mid$(Data, 10, 1))
+                .LevelReq = Asc(Mid$(Data, 11, 1))
+                .Version = Asc(Mid$(Data, 12, 1))
+                .SellPrice = Asc(Mid$(Data, 13, 1)) * 256 + Asc(Mid$(Data, 14, 1))
+                If Len(Data) >= 15 Then
+                    .name = Mid$(Data, 15)
+                Else
+                    .name = vbNullString
+                End If
+                If frmMonster_Loaded = True Then
+                    frmMonster.cmbObject(0).List(ObjIndex) = CStr(ObjIndex) + ": " + .name
+                    frmMonster.cmbObject(1).List(ObjIndex) = CStr(ObjIndex) + ": " + .name
+                    frmMonster.cmbObject(2).List(ObjIndex) = CStr(ObjIndex) + ": " + .name
+                End If
+                If frmNPC_Loaded = True Then
+                    frmNPC.cmbGiveObject.List(ObjIndex) = CStr(ObjIndex) + ": " + .name
+                    frmNPC.cmbTakeObject.List(ObjIndex) = CStr(ObjIndex) + ": " + .name
+                End If
+                If frmList_Loaded = True Then
+                    frmList.DrawList
+                End If
+            End With
+            RefreshInventory
+            For LoopIndex = 0 To MaxMapObjects
+                With Map.Object(LoopIndex)
+                    If .Object = ObjIndex Then
+                        RedrawMapTile CLng(.X), CLng(.Y)
+                    End If
+                End With
+            Next LoopIndex
+            Debug.Print "Save Object " + CStr(ObjIndex)
+            SaveObject CInt(ObjIndex)
+        End If
+    End If
+End Sub
+
 'Erases a Map Object
 Sub EraseMapObject(Data As String)
     Dim MapObject As Long
@@ -500,6 +561,40 @@ Sub Message(Data As String)
         Case 48    'Server is being backed up
             PrintChat "Server is being backed up.", 7
         End Select
+    End If
+End Sub
+
+'Processing Monster Data
+Sub MonsterData(Data As String)
+    Dim MonsterIndex As Long
+    Dim LoopIndex As Long
+
+    If Len(Data) >= 8 Then
+        MonsterIndex = GetInt(Mid$(Data, 1, 2))
+        If MonsterIndex >= 1 Then
+            With Monster(MonsterIndex)
+                .Sprite = Asc(Mid$(Data, 3, 1)) * 256 + Asc(Mid$(Data, 4, 1))
+                .Version = Asc(Mid$(Data, 5, 1))
+                .MaxLife = GetInt(Mid$(Data, 6, 2))
+                .flags = Asc(Mid$(Data, 8, 1))
+                If Len(Data) >= 9 Then
+                    .name = Mid$(Data, 9)
+                Else
+                    .name = vbNullString
+                End If
+                If frmList_Loaded = True Then
+                    frmList.DrawList
+                End If
+                If frmMapProperties_Loaded = True Then
+                    For LoopIndex = 0 To 9
+                        frmMapProperties.cmbMonster(LoopIndex).List(MonsterIndex) = CStr(MonsterIndex) + ": " + .name
+                    Next LoopIndex
+    
+                End If
+            End With
+            Debug.Print "Save Monster " + CStr(MonsterIndex)
+            SaveMonster MonsterIndex
+        End If
     End If
 End Sub
 
@@ -710,6 +805,163 @@ Sub Broadcast(Data As String)
                 PrintChat Player(PlayerIndex).name + ": " + Mid$(Data, 2), 13
             End If
         End If
+    End If
+End Sub
+
+'Edit Monster Data
+Sub EditMonsterData(Data As String)
+    Dim MonsterIndex As Long
+    Dim ParamByte As Long
+    Dim LoopIndex As Long
+    
+    If Len(Data) > 16 Then
+        MonsterIndex = GetInt(Mid$(Data, 1, 2))
+        If frmMonster_Loaded = False Then Load frmMonster
+        With frmMonster
+            .lblNumber = MonsterIndex
+            .txtName = Monster(MonsterIndex).name
+            If Monster(MonsterIndex).Sprite > 0 Then
+                .sclSprite = Monster(MonsterIndex).Sprite
+            Else
+                .sclSprite = 1
+            End If
+            
+            'HP Byte
+            ParamByte = GetInt(Mid$(Data, 3, 2))
+            If ParamByte > 0 Then
+                .sclHP = ParamByte
+            Else
+                .sclHP = 1
+            End If
+            
+            'Strength Byte
+            ParamByte = Asc(Mid$(Data, 5, 1))
+            If ParamByte > 0 Then
+                .sclStrength = ParamByte
+            Else
+                .sclStrength = 1
+            End If
+            
+            'Armor Byte
+            '@todo Was originally just set, no > 0 check
+            ParamByte = Asc(Mid$(Data, 6, 1))
+            If ParamByte >= 0 Then
+                .sclArmor = ParamByte
+            Else
+                .sclArmor = 1
+            End If
+                            
+            'Spped Byte
+            ParamByte = Asc(Mid$(Data, 7, 1))
+            If ParamByte > 0 Then
+                .sclSpeed = ParamByte
+            Else
+                .sclSpeed = 1
+            End If
+            
+            'Sight Byte
+            ParamByte = Asc(Mid$(Data, 8, 1))
+            If ParamByte > 0 Then
+                .sclSight = ParamByte
+            Else
+                .sclSight = 1
+            End If
+            
+            'Agility Byte
+            ParamByte = Asc(Mid$(Data, 9, 1))
+            If ParamByte <= 100 Then
+                .sclAgility = ParamByte
+            Else
+                .sclAgility = 100
+            End If
+            
+            'Flag Byte
+            ParamByte = Asc(Mid$(Data, 10, 1))
+            For LoopIndex = 0 To 7
+                If ExamineBit(CByte(ParamByte), CByte(LoopIndex)) = True Then
+                    .chkFlag(LoopIndex) = 1
+                Else
+                    .chkFlag(LoopIndex) = 0
+                End If
+            Next LoopIndex
+            
+            .cmbObject(0).ListIndex = GetInt(Mid$(Data, 11, 2))
+            .txtValue(0) = Asc(Mid$(Data, 13, 1))
+            .cmbObject(1).ListIndex = GetInt(Mid$(Data, 14, 2))
+            .txtValue(1) = Asc(Mid$(Data, 16, 1))
+            .cmbObject(2).ListIndex = GetInt(Mid$(Data, 17, 2))
+            .txtValue(2) = Asc(Mid$(Data, 19, 1))
+            .sclExperience.value = Asc(Mid$(Data, 20, 1))
+            .sclMagicDefense.value = Asc(Mid$(Data, 21, 1))
+            .lblExperience = .sclExperience.value
+            .lblMagicDefense = .sclMagicDefense.value
+            .Show 1
+        End With
+    End If
+End Sub
+
+'Edit Object Data
+Sub EditObjectData(Data As String)
+    Dim ObjIndex As Long
+    Dim ParamByte As Long
+    Dim LoopIndex As Long
+
+    If Len(Data) = 9 Then
+        ObjIndex = GetInt(Mid$(Data, 1, 2))
+        If ExamineBit(Object(ObjIndex).flags, 5) = 255 Then
+            If Character.Access < 3 Then
+                PrintChat "This object is locked!", 7
+                Exit Sub
+            End If
+        End If
+        If frmObject_Loaded = False Then Load frmObject
+        With frmObject
+            .lblNumber = ObjIndex
+            .txtName = Object(ObjIndex).name
+            If Object(ObjIndex).Picture > 0 Then
+                .sclPicture = Object(ObjIndex).Picture
+            Else
+                .sclPicture = 1
+            End If
+            
+            'Flag Byte
+            ParamByte = Asc(Mid$(Data, 3, 1))
+            For LoopIndex = 0 To 6
+                If ExamineBit(CByte(ParamByte), CByte(LoopIndex)) = True Then
+                    frmObject.chkFlags(LoopIndex) = 1
+                Else
+                    frmObject.chkFlags(LoopIndex) = 0
+                End If
+            Next LoopIndex
+            .ObjData(0) = Asc(Mid$(Data, 4, 1))
+            .ObjData(1) = Asc(Mid$(Data, 5, 1))
+            .ObjData(2) = Asc(Mid$(Data, 6, 1))
+            .ObjData(3) = Asc(Mid$(Data, 7, 1))
+            .lblData(0) = .ObjData(0)
+            .lblData(1) = .ObjData(1)
+            .lblData(2) = .ObjData(2)
+            .lblData(3) = .ObjData(3)
+            .sclLevel.value = Asc(Mid$(Data, 9, 1))
+            
+            'Class Byte
+            ParamByte = Asc(Mid$(Data, 8, 1))
+            For LoopIndex = 0 To 3
+                If ExamineBit(CByte(ParamByte), CByte(LoopIndex)) = True Then
+                    frmObject.chkClass(LoopIndex) = 1
+                Else
+                    frmObject.chkClass(LoopIndex) = 0
+                End If
+            Next LoopIndex
+            If Object(ObjIndex).Type < .cmbType.ListCount Then
+                .cmbType.ListIndex = 0
+                .cmbType.ListIndex = Object(ObjIndex).Type
+            Else
+                .cmbType.ListIndex = 0
+            End If
+            .sclSellPrice = Object(ObjIndex).SellPrice
+            .txtSellPrice = .sclSellPrice
+            .Show 1
+        End With
     End If
 End Sub
 
