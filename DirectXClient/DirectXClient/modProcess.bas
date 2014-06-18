@@ -1740,6 +1740,8 @@ Sub ProcessString(PacketID As Long, St As String)
         End If
     Case 156 'Uncompressed Map Data
     
+    Case 254 'Set Check Byte
+    
     Case 255    'Pong (Do Nothing)
 
     End Select

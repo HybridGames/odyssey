@@ -467,6 +467,8 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
     With Player(Index)
         MapNum = .Map
         Select Case .Mode
+        
+        'Not Connected
         Case modeNotConnected
             Select Case PacketID
             Case 0    'New Account
@@ -749,6 +751,9 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                     SendSocket Index, Chr$(116)
                 End If
             End Select
+            
+            
+        'Connected
         Case modeConnected
             Select Case PacketID
             Case 2    'Create New Character
@@ -991,6 +996,8 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
             Case Else
                 Hacker Index, "B.2 - " + CStr(PacketID)
             End Select
+            
+        'Playing
         Case modePlaying
             Select Case PacketID
             Case 3    'Change Password
@@ -1054,17 +1061,12 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
             Case 7    'Move
                 If Len(St) = 4 Then
                     If .LastMsg > .WalkTimer Then
-                        .WalkCount = 0
                         .WalkTimer = .LastMsg + 500
                     End If
-                    'If .WalkCount > 5 And .Access = 0 Then
-
-                    'Else
-                        '.WalkCount = .WalkCount + 1
-                        If .IsDead = False Then
-                            ProcessMovement Index, St, MapNum
-                        End If
-                    'End If
+                    
+                    If .IsDead = False Then
+                        ProcessMovement Index, St, MapNum
+                    End If
                 Else
                     Hacker Index, "A.16"
                 End If
@@ -1543,6 +1545,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                 Else
                     SendSocket Index, Chr$(16) + Chr$(41)
                 End If
+                
             Case 15    'Broadcast
                 If Len(St) >= 1 And Len(St) <= 512 Then
                     If Not .Flag(40) > 0 And Not .Flag(41) > 0 And .IsDead = False Then
@@ -1583,6 +1586,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                 Else
                     SendSocket Index, Chr$(16) + Chr$(41)
                 End If
+                
             Case 17    'Yell
                 If Not .Flag(40) > 0 And Not .Flag(41) > 0 And .IsDead = False Then
                     .FloodTimer = .FloodTimer + 1200

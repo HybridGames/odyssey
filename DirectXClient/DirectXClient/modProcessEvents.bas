@@ -129,6 +129,11 @@ Sub PasswordChanged(Data As String)
     If frmWait_Loaded = True Then Unload frmWait
 End Sub
 
+'Sets a check byte that is used as part of heartbeat
+Sub SetCheckByte(Data As String)
+    
+End Sub
+
 'Sets the Message of the Day text
 Sub SetMotd(Data As String)
     MOTDText = Data
