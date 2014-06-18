@@ -183,38 +183,13 @@ Sub ProcessString(PacketID As Long, St As String)
         modProcessEvents.EditMonsterData St
         
     Case 35    'Repeat
-        If Len(St) >= 1 Then
-            SendSocket St
-        End If
+        modProcessEvents.Repeat St
 
     Case 36    'Door Open
-        If Len(St) = 3 Then
-            A = Asc(Mid$(St, 1, 1))
-            If A <= 9 Then
-                With Map.Door(A)
-                    .X = Asc(Mid$(St, 2, 1))
-                    .Y = Asc(Mid$(St, 3, 1))
-                    .Att = Map.Tile(.X, .Y).Att
-                    .BGTile1 = Map.Tile(.X, .Y).BGTile1
-                    Map.Tile(.X, .Y).Att = 0
-                    Map.Tile(.X, .Y).BGTile1 = 0
-                    RedrawMapTile .X, .Y
-                End With
-            End If
-        End If
+        modProcessEvents.DoorOpen St
 
     Case 37    'Close Door
-        If Len(St) = 1 Then
-            A = Asc(Mid$(St, 1, 1))
-            If A <= 9 Then
-                With Map.Door(A)
-                    Map.Tile(.X, .Y).Att = .Att
-                    Map.Tile(.X, .Y).BGTile1 = .BGTile1
-                    .Att = 0
-                    RedrawMapTile .X, .Y
-                End With
-            End If
-        End If
+        modProcessEvents.DoorClose St
 
     Case 38    'New Map Monster
         If Len(St) = 8 Then

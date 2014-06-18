@@ -2,37 +2,41 @@ Attribute VB_Name = "modProcessEvents"
 'Client Creating a new Account
 Sub NewAccount(Data As String, Player As PlayerData)
     Dim ByteCount As Long
+    Dim NameLength As Long
+    Dim UserName As String
+    Dim Password As String
 
     With Player
         If .ClientVer = CurrentClientVer Then
             ByteCount = InStr(1, Data, Chr$(0))
             If ByteCount > 1 And ByteCount < Len(Data) Then
-                St1 = Trim$(Mid$(Data, 1, ByteCount - 1))
-                B = Len(St1)
-                If B >= 3 And B <= 15 And ValidName(St1) Then
+                UserName = Trim$(Mid$(Data, 1, ByteCount - 1))
+                NameLength = Len(UserName)
+                If NameLength >= 3 And NameLength <= 15 And ValidName(UserName) Then
                     UserRS.Index = "User"
-                    UserRS.Seek "=", St1
+                    UserRS.Seek "=", UserName
 
+                    '@todo this doesn't seem necessary
                     'E = 0
-                    'St1 = UCase$(St1)
+                    'UserName = UCase$(UserName)
                     'For F = 1 To MaxUsers
                     '    If F <> Index Then
-                    '        If St1 = UCase$(Player(F).User) Then
+                    '        If UserName = UCase$(Player(F).User) Then
                     '            E = 1
                     '            Exit For
                     '        End If
                     '    End If
                     'Next F
 
-                    If UserRS.NoMatch = True And GuildNum(St1) = 0 Then 'And E = 0 Then
+                    If UserRS.NoMatch = True And GuildNum(UserName) = 0 Then 'And E = 0 Then
                         UserRS.AddNew
-                        UserRS!User = St1
-                        .User = St1
-                        St1 = Trim$(UCase$(Mid$(Data, ByteCount + 1)))
-                        If Len(St1) > 15 Then
-                            UserRS!Password = Left$(St1, 15)
+                        UserRS!User = UserName
+                        .User = UserName
+                        Password = Trim$(UCase$(Mid$(Data, ByteCount + 1)))
+                        If Len(Password) > 15 Then
+                            UserRS!Password = Left$(Password, 15)
                         Else
-                            UserRS!Password = St1
+                            UserRS!Password = Password
                         End If
                         UserRS.Update
                         UserRS.Seek "=", .User

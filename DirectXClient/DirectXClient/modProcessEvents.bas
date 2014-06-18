@@ -245,6 +245,13 @@ Sub PlayerMoved(Data As String)
     End If
 End Sub
 
+'Simple Echo
+Sub Repeat(Data As String)
+    If Len(Data) >= 1 Then
+        SendSocket Data
+    End If
+End Sub
+
 'Player Say
 Sub Say(Data As String)
     Dim PlayerIndex As Long
@@ -809,6 +816,43 @@ Sub Broadcast(Data As String)
             If Player(PlayerIndex).Ignore = False Then
                 PrintChat Player(PlayerIndex).name + ": " + Mid$(Data, 2), 13
             End If
+        End If
+    End If
+End Sub
+
+'Door Close
+Sub DoorClose(Data As String)
+    Dim DoorIndex As Long
+    
+    If Len(Data) = 1 Then
+        DoorIndex = Asc(Mid$(Data, 1, 1))
+        If DoorIndex <= 9 Then
+            With Map.Door(DoorIndex)
+                Map.Tile(.X, .Y).Att = .Att
+                Map.Tile(.X, .Y).BGTile1 = .BGTile1
+                .Att = 0
+                RedrawMapTile .X, .Y
+            End With
+        End If
+    End If
+End Sub
+
+'Door Open
+Sub DoorOpen(Data As String)
+    Dim DoorIndex As Long
+
+    If Len(Data) = 3 Then
+        DoorIndex = Asc(Mid$(Data, 1, 1))
+        If DoorIndex <= 9 Then
+            With Map.Door(DoorIndex)
+                .X = Asc(Mid$(Data, 2, 1))
+                .Y = Asc(Mid$(Data, 3, 1))
+                .Att = Map.Tile(.X, .Y).Att
+                .BGTile1 = Map.Tile(.X, .Y).BGTile1
+                Map.Tile(.X, .Y).Att = 0
+                Map.Tile(.X, .Y).BGTile1 = 0
+                RedrawMapTile .X, .Y
+            End With
         End If
     End If
 End Sub
