@@ -15,7 +15,7 @@ Sub DeleteGuild(Index As Long, Reason As Byte)
                 If .Name <> "" Then
                     B = FindPlayer(.Name)
                     If B > 0 Then
-                        With Player(B)
+                        With Players(B)
                             .Guild = 0
                             .GuildRank = 0
                             If Guild(Index).Sprite > 0 Then
@@ -72,7 +72,7 @@ Sub DeleteGuild(Index As Long, Reason As Byte)
 
     'Erase Join Requests
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .JoinRequest = Index Then .JoinRequest = 0
         End With
     Next A
@@ -153,7 +153,7 @@ End Function
 Sub SendToGuild(GuildNum As Long, St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Guild = GuildNum Then
                 SendSocket A, St
             End If
@@ -164,7 +164,7 @@ End Sub
 Sub SendToGuildAllBut(Index As Long, GuildNum As Long, St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Guild = GuildNum And Index <> A Then
                 SendSocket A, St
             End If

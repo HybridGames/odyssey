@@ -8,7 +8,7 @@ Sub ReadClientData(Index As Long)
     Dim Tick As Currency
     Tick = getTime
 
-    With Player(Index)
+    With Players(Index)
         MapNum = .Map
         SocketData = .SocketData + Receive(.Socket)
         .LastMsg = Tick
@@ -71,15 +71,15 @@ LoopRead:
     Exit Sub
 
 LogDatShit:
-    SendToGods Chr$(16) & Chr$(0) & "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
-    PrintLog "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
-    PrintDebug "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    SendToGods Chr$(16) & Chr$(0) & "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    PrintLog "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    PrintDebug "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
     BootPlayer Index, 0, "Crashed Server"
 End Sub
 
 Sub ProcessGodCommand(Index As Long, St As String)
     Dim A As Long, B As Long, C As Long, D As Long, St1 As String
-    With Player(Index)
+    With Players(Index)
         Select Case Asc(Mid$(St, 1, 1))
         Case 0    'Server Message
             If Len(St) >= 2 Then
@@ -94,7 +94,7 @@ Sub ProcessGodCommand(Index As Long, St As String)
                 B = Asc(Mid$(St, 4, 1))
                 C = Asc(Mid$(St, 5, 1))
                 If A >= 1 And A <= MaxMaps And B <= 11 And C <= 11 Then
-                    PrintGod Player(Index).User, " (Warp) Map: " + CStr(A) + " X: " + CStr(B) + " Y: " + CStr(C) + " Map Name: " + Map(A).Name
+                    PrintGod Players(Index).User, " (Warp) Map: " + CStr(A) + " X: " + CStr(B) + " Y: " + CStr(C) + " Map Name: " + Map(A).Name
                     Partmap Index
                     .Map = A
                     .X = B
@@ -109,12 +109,12 @@ Sub ProcessGodCommand(Index As Long, St As String)
             If Len(St) = 2 Then
                 A = Asc(Mid$(St, 2, 1))
                 If A >= 1 And A <= MaxUsers And A <> Index Then
-                    If Player(A).Mode = modePlaying Then
-                        PrintGod Player(Index).User, " (WarpMe) Warped to Player: " + Player(A).Name + " Map: " + CStr(Player(A).Map) + " Map Name: " + Map(Player(A).Map).Name
+                    If Players(A).Mode = modePlaying Then
+                        PrintGod Players(Index).User, " (WarpMe) Warped to Player: " + Players(A).Name + " Map: " + CStr(Player(A).Map) + " Map Name: " + Map(Player(A).Map).Name
                         Partmap Index
-                        .Map = Player(A).Map
-                        .X = Player(A).X
-                        .Y = Player(A).Y
+                        .Map = Players(A).Map
+                        .X = Players(A).X
+                        .Y = Players(A).Y
                         JoinMap Index
                     End If
                 End If
@@ -129,9 +129,9 @@ Sub ProcessGodCommand(Index As Long, St As String)
                 C = Asc(Mid$(St, 5, 1))
                 D = Asc(Mid$(St, 6, 1))
                 If A >= 1 And A <= MaxUsers And B >= 1 And B <= MaxMaps And C <= 11 And D <= 11 Then
-                    With Player(A)
+                    With Players(A)
                         If .Mode = modePlaying Then
-                            PrintGod Player(Index).User, " (WarpToMe) Warped Player: " + Player(A).Name + " Map: " + CStr(Player(Index).Map) + " Map Name: " + Map(Player(Index).Map).Name
+                            PrintGod Players(Index).User, " (WarpToMe) Warped Player: " + Players(A).Name + " Map: " + CStr(Player(Index).Map) + " Map Name: " + Map(Player(Index).Map).Name
                             Partmap A
                             .Map = B
                             .X = C
@@ -147,7 +147,7 @@ Sub ProcessGodCommand(Index As Long, St As String)
         Case 4    'Set MOTD
             If Len(St) > 1 And .Access >= 3 Then
                 World.MOTD = Mid$(St, 2)
-                PrintGod Player(Index).User, " (MOTD) " + World.MOTD
+                PrintGod Players(Index).User, " (MOTD) " + World.MOTD
                 DataRS.Edit
                 DataRS!MOTD = World.MOTD
                 DataRS.Update
@@ -158,7 +158,7 @@ Sub ProcessGodCommand(Index As Long, St As String)
         Case 5    'Disband Guild
             If Len(St) = 2 And .Access >= 2 Then
                 A = Asc(Mid$(St, 2, 1))
-                PrintGod Player(Index).User, " (Delete Guild) " + Guild(A).Name
+                PrintGod Players(Index).User, " (Delete Guild) " + Guild(A).Name
                 DeleteGuild A, 3
             Else
                 Hacker Index, "A.33"
@@ -169,9 +169,9 @@ Sub ProcessGodCommand(Index As Long, St As String)
                 A = Asc(Mid$(St, 2, 1))
                 B = Asc(Mid$(St, 3, 1)) * 256 + Asc(Mid$(St, 4, 1))
                 If A >= 1 And A <= MaxUsers And B <= MaxSprite Then
-                    With Player(A)
+                    With Players(A)
                         If .Mode = modePlaying Then
-                            PrintGod Player(Index).User, " (SetSprite) " + Player(A).Name
+                            PrintGod Players(Index).User, " (SetSprite) " + Players(A).Name
                             If B = 0 Then
                                 .Sprite = .Class * 2 + .Gender - 1
                             Else
@@ -189,12 +189,12 @@ Sub ProcessGodCommand(Index As Long, St As String)
             If Len(St) >= 3 And Len(St) <= 17 And .Access >= 2 Then
                 A = Asc(Mid$(St, 2, 1))
                 If A >= 1 And A <= MaxUsers Then
-                    With Player(A)
+                    With Players(A)
                         If .Mode = modePlaying Then
                             UserRS.Index = "Name"
                             UserRS.Seek "=", Mid$(St, 3)
                             If UserRS.NoMatch = True Then
-                                PrintGod Player(Index).User, " (SetName) " + Player(A).Name + " (to) " + Mid$(St, 3)
+                                PrintGod Players(Index).User, " (SetName) " + Players(A).Name + " (to) " + Mid$(St, 3)
                                 .Name = Mid$(St, 3)
                                 SendAll Chr$(64) + Chr$(A) + .Name
                             Else
@@ -211,9 +211,9 @@ Sub ProcessGodCommand(Index As Long, St As String)
             If Len(St) = 1 And .Access >= 2 Then
                 Dim PlayerString As String
                 For A = 1 To MaxUsers
-                    If Player(A).Map = .Map Then PlayerString = PlayerString + Player(A).Name + ", "
+                    If Players(A).Map = .Map Then PlayerString = PlayerString + Players(A).Name + ", "
                 Next A
-                PrintGod Player(Index).User, " (ResetMap) Map: " + CStr(Player(Index).Map) + " - " + PlayerString
+                PrintGod Players(Index).User, " (ResetMap) Map: " + CStr(Player(Index).Map) + " - " + PlayerString
                 ResetMap CLng(.Map)
             Else
                 Hacker Index, "A.84"
@@ -223,8 +223,8 @@ Sub ProcessGodCommand(Index As Long, St As String)
             If Len(St) >= 2 Then
                 A = Asc(Mid$(St, 2, 1))
                 If A >= 1 And A <= MaxUsers Then
-                    If Not Player(A).Access = 4 Then
-                        PrintGod Player(Index).User, " (Boot) Booted " + Player(A).Name + " for reason " + Mid$(St, 3)
+                    If Not Players(A).Access = 4 Then
+                        PrintGod Players(Index).User, " (Boot) Booted " + Players(A).Name + " for reason " + Mid$(St, 3)
                         BootPlayer A, Index, Mid$(St, 3)
                     End If
                 End If
@@ -236,9 +236,9 @@ Sub ProcessGodCommand(Index As Long, St As String)
             If Len(St) >= 3 Then
                 A = Asc(Mid$(St, 2, 1))
                 If A >= 1 And A <= MaxUsers Then
-                    If Not Player(A).Access = 4 Then
-                        If BanPlayer(A, Index, Asc(Mid$(St, 3, 1)), Mid$(St, 4), Player(Index).Name) = False Then
-                            PrintGod Player(Index).User, " (Ban) Banned " + Player(A).Name + " for reason " + Mid$(St, 4)
+                    If Not Players(A).Access = 4 Then
+                        If BanPlayer(A, Index, Asc(Mid$(St, 3, 1)), Mid$(St, 4), Players(Index).Name) = False Then
+                            PrintGod Players(Index).User, " (Ban) Banned " + Players(A).Name + " for reason " + Mid$(St, 4)
                             SendSocket Index, Chr$(16) + Chr$(13)    'Ban list full
                         End If
                     End If
@@ -252,7 +252,7 @@ Sub ProcessGodCommand(Index As Long, St As String)
                 A = Asc(Mid$(St, 2, 1))
                 If A >= 1 And A <= 50 Then
                     If Not Ban(A).Banner = "SuperAdmin" Or .Access = 4 Then
-                        PrintGod Player(Index).User, " (Remove Ban) Player: " + Ban(A).Name
+                        PrintGod Players(Index).User, " (Remove Ban) Player: " + Ban(A).Name
                         SendAll Chr$(56) + Chr$(15) + Ban(A).Name + " has been unbanned by " + .Name + "."
                         With Ban(A)
                             .ComputerID = ""
@@ -292,7 +292,7 @@ Sub ProcessGodCommand(Index As Long, St As String)
         Case 14    'Chat
             If Len(St) >= 2 Then
                 SendToGodsAllBut Index, Chr$(90) + Chr$(Index) + Mid$(St, 2)
-                PrintChat "God", Player(Index).User + ": " + Mid$(St, 2)
+                PrintChat "God", Players(Index).User + ": " + Mid$(St, 2)
             Else
                 Hacker Index, "Attempted God Chat Attempt"
             End If
@@ -316,7 +316,7 @@ Sub ProcessGodCommand(Index As Long, St As String)
                                     If .Name <> "" Then
                                         D = FindPlayer(.Name)
                                         If D > 0 Then
-                                            With Player(D)
+                                            With Players(D)
                                                 If B > 0 Then
                                                     .Sprite = B
                                                 Else
@@ -360,9 +360,9 @@ Sub ProcessGodCommand(Index As Long, St As String)
                 A = Asc(Mid$(St, 2, 1))
                 B = Asc(Mid$(St, 3, 1))
                 If A >= 1 And A <= MaxUsers And B <= 255 Then
-                    With Player(A)
+                    With Players(A)
                         If .Mode = modePlaying Then
-                            PrintGod Player(Index).User, " (Set Status) Player: " + .Name + " - Status: " + CStr(B)
+                            PrintGod Players(Index).User, " (Set Status) Player: " + .Name + " - Status: " + CStr(B)
                             If B = 0 Then
                                 .Status = 0
                             Else
@@ -377,9 +377,9 @@ Sub ProcessGodCommand(Index As Long, St As String)
             If Len(St) >= 1 And .Access >= 2 Then
                 A = Asc(Mid$(St, 2, 1))
                 If A >= 1 And A <= MaxUsers Then
-                    PrintGod Player(Index).User, " (Scan) Player: " + Player(A).Name
+                    PrintGod Players(Index).User, " (Scan) Player: " + Players(A).Name
                     St1 = ""
-                    With Player(A)
+                    With Players(A)
                         St1 = Chr$(104) & Chr$(A) & Chr$(.Class) & Chr$(.Level) + Chr$(0) + Chr$(0) + Chr$(0) + Chr$(0) + Chr$(.MaxHP) & Chr$(.MaxMana) & Chr$(.MaxEnergy)
                         For B = 1 To 20
                             St1 = St1 & DoubleChar$(CLng(.Inv(B).Object)) & QuadChar(.Inv(B).Value)
@@ -401,7 +401,7 @@ Sub ProcessGodCommand(Index As Long, St As String)
                 A = Asc(Mid$(St, 2, 1))
                 B = Asc(Mid$(St, 3, 1))
                 If A >= 1 And A <= MaxUsers And B <= 255 Then
-                    With Player(A)
+                    With Players(A)
                         If .Mode = modePlaying Then
                             If B > 0 & B <= NumClasses Then
                                 .Class = B
@@ -432,9 +432,9 @@ Sub ProcessScriptProjectile(Index As Long, St As String)
         Hacker Index, "P.1"
     End If
     
-    If Player(Index).ProjectileDamage(Damage).Live = True Then
-        Player(Index).ProjectileDamage(Damage).Live = False
-        Damage = Player(Index).ProjectileDamage(Damage).Damage
+    If Players(Index).ProjectileDamage(Damage).Live = True Then
+        Players(Index).ProjectileDamage(Damage).Live = False
+        Damage = Players(Index).ProjectileDamage(Damage).Damage
     Else
         Damage = 0
     End If
@@ -464,7 +464,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
         PrintDebugLive "Packet: [" & Index & "] " & PacketID & " Len=" & Len(St)
     End If
 
-    With Player(Index)
+    With Players(Index)
         MapNum = .Map
         Select Case .Mode
         
@@ -472,58 +472,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
         Case modeNotConnected
             Select Case PacketID
             Case 0    'New Account
-                If .ClientVer = CurrentClientVer Then
-                    A = InStr(1, St, Chr$(0))
-                    If A > 1 And A < Len(St) Then
-                        St1 = Trim$(Mid$(St, 1, A - 1))
-                        B = Len(St1)
-                        If B >= 3 And B <= 15 And ValidName(St1) Then
-                            UserRS.Index = "User"
-                            UserRS.Seek "=", St1
-
-                            E = 0
-                            St1 = UCase$(St1)
-                            For F = 1 To MaxUsers
-                                If F <> Index Then
-                                    If St1 = UCase$(Player(F).User) Then
-                                        E = 1
-                                        Exit For
-                                    End If
-                                End If
-                            Next F
-
-                            If UserRS.NoMatch = True And GuildNum(St1) = 0 And E = 0 Then
-                                UserRS.AddNew
-                                UserRS!User = St1
-                                .User = St1
-                                St1 = Trim$(UCase$(Mid$(St, A + 1)))
-                                If Len(St1) > 15 Then
-                                    UserRS!Password = Left$(St1, 15)
-                                Else
-                                    UserRS!Password = St1
-                                End If
-                                UserRS.Update
-                                UserRS.Seek "=", .User
-                                .Bookmark = UserRS.Bookmark
-                                .Access = 0
-                                .Class = 0
-                                SavePlayerData Index
-                                SendSocket Index, Chr$(2)    'New account created!
-                                AddSocketQue Index
-                            Else
-                                SendSocket Index, Chr$(1) + Chr$(1)    'User Already Exists
-                                AddSocketQue Index
-                            End If
-                        Else
-                            Hacker Index, "A.79"
-                        End If
-                    Else
-                        AddSocketQue Index
-                    End If
-                Else
-                    SendSocket Index, Chr$(116)
-                    AddSocketQue Index
-                End If
+                modProcessEvents.NewAccount St, Players(Index)
 
             Case 1    'Log on
                 If .ClientVer = CurrentClientVer Then
@@ -543,7 +492,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                             B = 1
                                             Exit For
                                         End If
-                                        'If .ComputerID = Player(A).ComputerID Then
+                                        'If .ComputerID = Players(A).ComputerID Then
                                         '    AddSocketQue A
                                         '    B = 2
                                         '    Exit For
@@ -695,9 +644,9 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                             If .Name <> "" Then
                                                 For B = 0 To 19
                                                     If .Member(B).Name = St1 Then
-                                                        Player(Index).Guild = A
-                                                        Player(Index).GuildRank = .Member(B).Rank
-                                                        Player(Index).GuildSlot = B
+                                                        Players(Index).Guild = A
+                                                        Players(Index).GuildRank = .Member(B).Rank
+                                                        Players(Index).GuildSlot = B
                                                         Exit For
                                                     End If
                                                 Next B
@@ -1188,7 +1137,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                         .ItemPrefix = G
                                         .ItemSuffix = H
                                         .Value = D
-                                        .TimeStamp = Player(Index).LastMsg + Int(Rnd * 60000) - 30000
+                                        .TimeStamp = Players(Index).LastMsg + Int(Rnd * 60000) - 30000
                                     End With
                                     Map(MapNum).Object(C).X = .X
                                     Map(MapNum).Object(C).Y = .Y
@@ -1313,7 +1262,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                                                 .Att = 3
                                                                 .X = C
                                                                 .Y = D
-                                                                .T = Player(Index).LastMsg
+                                                                .T = Players(Index).LastMsg
                                                             End With
                                                             Map(MapNum).Tile(C, D).Att = 0
                                                             SendToMap MapNum, Chr$(36) + Chr$(E) + Chr$(C) + Chr$(D)
@@ -1339,7 +1288,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                             C = 0
     
                                         Case 9    'Guild Deed
-                                            If Player(Index).Guild = 0 Then
+                                            If Players(Index).Guild = 0 Then
                                                 B = 0
                                                 C = 0
                                                 SendSocket Index, Chr$(97) + Chr$(1)
@@ -1442,7 +1391,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                         Map(MapNum).Door(A).Att = 0
                     Next A
                     For A = 1 To MaxUsers
-                        With Player(A)
+                        With Players(A)
                             If .Mode = modePlaying And .Map = MapNum Then
                                 Partmap A
                                 .Map = MapNum
@@ -1528,8 +1477,8 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                     If Len(St) >= 2 And Len(St) <= 513 Then
                         A = Asc(Mid$(St, 1, 1))
                         If A >= 1 And A <= MaxUsers Then
-                            If Player(A).Mode = modePlaying Then
-                                PrintChat "Tell", .Name + " tells " + Player(A).Name + ", '" + Mid$(St, 2) + "'"
+                            If Players(A).Mode = modePlaying Then
+                                PrintChat "Tell", .Name + " tells " + Players(A).Name + ", '" + Mid$(St, 2) + "'"
                                 SendSocket A, Chr$(25) + Chr$(Index) + Mid$(St, 2)
                                 If .Mana > 2 Then
                                     .Mana = .Mana - 2
@@ -1711,7 +1660,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                         If ExamineBit(Map(MapNum).flags, 0) = False Then
                             A = Asc(Mid$(St, 1, 1))
                             If A >= 1 And A <= MaxUsers Then
-                                If Player(A).IsDead = False Then
+                                If Players(A).IsDead = False Then
                                     .TimeLeft = .LastMsg + 850
                                     If NoDirectionalWalls(CLng(.Map), CLng(.X), CLng(.Y), CLng(.D)) Then CombatAttackPlayer Index, A, PlayerDamage(Index)
                                 End If
@@ -1818,7 +1767,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                         Parameter(0) = Index
                         Parameter(1) = A
                         RunScript "CLICKPLAYER"
-                        SendSocket Index, Chr$(56) + Chr$(15) + Player(A).Name + "'s Description:  " + Player(A).desc
+                        SendSocket Index, Chr$(56) + Chr$(15) + Players(A).Name + "'s Description:  " + Players(A).desc
                     End If
                 Else
                     Hacker Index, "A.49"
@@ -1974,8 +1923,8 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                             If RunScript("GUILDINVITE") = 0 Then
                                 A = Asc(Mid$(St, 1, 1))
                                 If A >= 1 And A <= MaxUsers Then
-                                    If Player(A).Mode = modePlaying Then
-                                        Player(A).JoinRequest = .Guild
+                                    If Players(A).Mode = modePlaying Then
+                                        Players(A).JoinRequest = .Guild
                                         SendSocket A, Chr$(77) + Chr$(.Guild) + Chr$(Index)    'Invited to join guild
                                     End If
                                 End If
@@ -2011,7 +1960,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                 GuildRS.Update
                                 A = FindPlayer(St1)
                                 If A > 0 Then
-                                    With Player(A)
+                                    With Players(A)
                                         .Guild = 0
                                         .GuildRank = 0
                                         SendSocket A, Chr$(72) + vbNullChar
@@ -2054,7 +2003,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                         .Rank = B
                                         C = FindPlayer(.Name)
                                         If C > 0 Then
-                                            Player(C).GuildRank = B
+                                            Players(C).GuildRank = B
                                             SendSocket C, Chr$(76) + Chr$(B)    'Rank Changed
                                         End If
                                     End If
@@ -2635,7 +2584,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                     A = Asc(Mid$(St, 1, 1))
                     If A >= 1 And A <= 255 Then
                         With Ban(A)
-                            If Not .Banner = "SuperAdmin" Or Player(Index).Access = 4 Then
+                            If Not .Banner = "SuperAdmin" Or Players(Index).Access = 4 Then
                                 B = .UnbanDate - CLng(Date)
                                 If B < 0 Then B = 0
                                 If B > 255 Then B = 255
@@ -2681,7 +2630,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
 
             Case 59    'Edit Script
                 If Len(St) >= 1 And .Access >= 2 Then
-                    PrintGod Player(Index).User, " (Edit Script) " + St
+                    PrintGod Players(Index).User, " (Edit Script) " + St
                     ScriptRS.Seek "=", St
                     If ScriptRS.NoMatch = False Then
                         SendSocket Index, Chr$(94) + St + vbNullChar + ScriptRS!Source
@@ -2698,7 +2647,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                     If A >= 2 Then
                         B = InStr(A + 1, St, vbNullChar)
                         If B > 0 Then
-                            PrintGod Player(Index).User, " (Change Script) " + Left$(St, A - 1)
+                            PrintGod Players(Index).User, " (Change Script) " + Left$(St, A - 1)
                             ScriptRS.Seek "=", Left$(St, A - 1)
                             St1 = Mid$(St, A + 1, B - A - 1)
                             St2 = Mid$(St, B + 1)
@@ -2881,7 +2830,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                                 If .Name <> "" Then
                                                     D = FindPlayer(.Name)
                                                     If D > 0 Then
-                                                        With Player(D)
+                                                        With Players(D)
                                                             If A > 0 Then
                                                                 .Sprite = A
                                                             Else
@@ -2922,7 +2871,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                     A = GetInt(Mid$(St, 1, 2))
                     If A >= 1 Then
                         With Magic(A)
-                            PrintGod Player(Index).User, " (Edit Magic) " + .Name
+                            PrintGod Players(Index).User, " (Edit Magic) " + .Name
                             SendSocket Index, Chr$(128) + DoubleChar$(A)
                         End With
                     End If
@@ -2933,7 +2882,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                 If Len(St) > 2 And .Access > 1 Then
                     A = GetInt(Mid$(St, 1, 2))
                     With Magic(A)
-                        PrintGod Player(Index).User, " (Save Magic) " + .Name
+                        PrintGod Players(Index).User, " (Save Magic) " + .Name
                         .Level = Asc(Mid$(St, 3, 1))
                         .Class = Asc(Mid$(St, 4, 1))
                         .Icon = Asc(Mid$(St, 5, 1)) * 256 + Asc(Mid$(St, 6, 1))
@@ -3168,7 +3117,7 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
                                         If .Name <> "" Then
                                             D = FindPlayer(.Name)
                                             If D > 0 Then
-                                                With Player(D)
+                                                With Players(D)
                                                     .Sprite = .Class * 2 + .Gender - 1
                                                     SendToMap .Map, Chr$(63) + Chr$(D) + DoubleChar$(CLng(.Sprite))
                                                 End With
@@ -3235,9 +3184,9 @@ Sub ProcessString(Index As Long, PacketID As Long, St As String)
     Exit Sub
 
 LogDatShit:
-    SendToGods Chr$(16) + Chr$(0) + "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
-    PrintLog "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
-    PrintDebug "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    SendToGods Chr$(16) + Chr$(0) + "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    PrintLog "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    PrintDebug "WARNING:  Server Crashed on Packet # " + CStr(PacketID) & " from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
     BootPlayer Index, 0, "Crashed Server"
 End Sub
 
@@ -3246,7 +3195,7 @@ Sub ProcessRawData(Index As Long, SocketData As String)
 
     Dim St As String, PacketLength As Long, PacketID As Long
 LoopRead:
-    With Player(Index)
+    With Players(Index)
         If Len(SocketData) >= 3 Then
             PacketLength = GetInt(Mid$(SocketData, 1, 2))
             If PacketLength >= 5072 And .Access = 0 Then
@@ -3273,15 +3222,15 @@ LoopRead:
     Exit Sub
 
 LogDatShit:
-    SendToGods Chr$(16) & vbNullChar & "WARNING:  Server Crashed in ProcessRawData from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
-    PrintLog "WARNING:  Server Crashed in ProcessRawData from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
-    PrintDebug "WARNING:  Server Crashed in ProcessRawData from " & Player(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    SendToGods Chr$(16) & vbNullChar & "WARNING:  Server Crashed in ProcessRawData from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    PrintLog "WARNING:  Server Crashed in ProcessRawData from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
+    PrintDebug "WARNING:  Server Crashed in ProcessRawData from " & Players(Index).Name & "  DATA:  " & St & "  " & Err.Description
     BootPlayer Index, 0, "Crashed Server"
 End Sub
 
 Sub ProcessStartNewGuild(Index As Long, St As String)
     Dim A As Long, B As Long, C As Long
-    With Player(Index)
+    With Players(Index)
         If Len(St) >= 1 And Len(St) <= 15 Then
             If ValidName(St) = True Then
                 If .Guild = 0 Then
@@ -3331,12 +3280,12 @@ Sub ProcessStartNewGuild(Index As Long, St As String)
                                             GuildRS("DeclarationKills" + CStr(B)) = 0
                                             GuildRS("DeclarationDeaths" + CStr(B)) = 0
                                         Next B
-                                        .Member(0).Name = Player(Index).Name
+                                        .Member(0).Name = Players(Index).Name
                                         .Member(0).Rank = 3
                                         .Member(0).JoinDate = CLng(Date)
                                         .Member(0).Kills = 0
                                         .Member(0).Deaths = 0
-                                        GuildRS!MemberName0 = Player(Index).Name
+                                        GuildRS!MemberName0 = Players(Index).Name
                                         GuildRS!MemberRank0 = 3
                                         GuildRS!MemberJoinDate0 = CLng(Date)
                                         GuildRS!MemberKills0 = 0
@@ -3358,8 +3307,8 @@ Sub ProcessStartNewGuild(Index As Long, St As String)
                                         GuildRS.Seek "=", A
                                         Guild(A).Bookmark = GuildRS.Bookmark
     
-                                        Player(Index).Guild = A
-                                        Player(Index).GuildRank = 3
+                                        Players(Index).Guild = A
+                                        Players(Index).GuildRank = 3
     
                                         SendAll Chr$(70) + Chr$(A) + Chr$(.MemberCount) + St    'Guild Data
                                         SendSocket Index, Chr$(80) + Chr$(A)    'Guild Created
@@ -3389,7 +3338,7 @@ Sub ProcessSellItem(Index As Long, Action As Long, Slot As Long)
     Dim GoldSlot As Long, FreeSlot As Long, SellPrice As Long
     Dim A As Long
     If Index >= 1 And Index <= MaxUsers And Slot >= 1 And Slot <= 20 Then
-        With Player(Index)
+        With Players(Index)
             If Map(.Map).NPC > 0 Then
                 If ExamineBit(NPC(Map(.Map).NPC).flags, 2) = True Then
                     GoldSlot = FindInvObject(Index, CLng(World.ObjMoney))
@@ -3475,7 +3424,7 @@ End Sub
 
 Sub ProcessVersion(Index As Long, St As String)
     Dim A As Long
-    With Player(Index)
+    With Players(Index)
         .ClientVer = Asc(Mid$(St, 1, 1))
         .ComputerID = Mid$(St, 3)
         A = CheckSum(.ComputerID) Mod 256
@@ -3496,7 +3445,7 @@ End Sub
 
 Sub ProcessSaveMonster(Index As Long, St As String)
     Dim A As Long
-    With Player(Index)
+    With Players(Index)
         A = GetInt(Mid$(St, 1, 2))
         If A >= 1 Then
             With Monster(A)
@@ -3548,7 +3497,7 @@ Sub ProcessSaveMonster(Index As Long, St As String)
                 If Not .Version = 255 Then .Version = .Version + 1 Else .Version = 1
                 MonsterRS!Version = .Version
                 MonsterRS.Update
-                PrintGod Player(Index).User, " (Save Monster) Monster #: " + CStr(A) + ", Experience: " + CStr(.Experience) + ", Drops: " + GetMonsterDrops(A)
+                PrintGod Players(Index).User, " (Save Monster) Monster #: " + CStr(A) + ", Experience: " + CStr(.Experience) + ", Drops: " + GetMonsterDrops(A)
                 SendAll Chr$(32) + DoubleChar$(A) + DoubleChar$(CLng(.Sprite)) + Chr$(.Version) + DoubleChar$(CLng(.HP)) + Chr$(.flags) + .Name
                 GenerateMonsterVersionList
             End With

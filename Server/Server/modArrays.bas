@@ -411,7 +411,7 @@ Public Hall(1 To MaxHalls) As HallData
 Public Object(1 To MaxObjects) As ObjectData
 Public Monster(1 To MaxTotalMonsters) As MonsterData
 Public NPC(1 To MaxNPCs) As NPCData
-Public Player(1 To MaxUsers + 1) As PlayerData
+Public Players(1 To MaxUsers + 1) As PlayerData
 Public Class(1 To 5) As ClassData
 Public Ban(1 To 50) As BanData
 Public ItemPrefix(1 To MaxModifications) As PrefixData

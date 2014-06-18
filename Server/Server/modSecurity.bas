@@ -26,7 +26,7 @@ Function CheckBan(Index As Long, PlayerName As String, ComputerID As String, IPA
                 SendSocket Index, Chr$(0) + Chr$(3) + QuadChar(Ban(BanNum).UnbanDate) + Ban(BanNum).Reason
                 SendToGods Chr$(16) + Chr$(0) + "Banned::" + PlayerName + "::" + .Name
                 PrintCheat "Banned::" + PlayerName + "::" + .Name
-                Player(Index).Mode = modeBanned
+                Players(Index).Mode = modeBanned
                 CheckBan = True
                 Exit Function
             End If
@@ -58,18 +58,18 @@ End Function
 Function BanPlayer(A As Long, Index As Long, NumDays As Long, Reason As String, Banner As String) As Boolean
     Dim C As Long
 
-    With Player(A)
+    With Players(A)
         If Not .Access = 4 Then
             C = FreeBanNum
             If C >= 1 Then
-                If CheckBan(A, Player(A).Name, Player(A).ComputerID, Player(A).IP) = False Then
+                If CheckBan(A, Players(A).Name, Players(A).ComputerID, Players(A).IP) = False Then
                     With Ban(C)
-                        .Name = Player(A).Name
+                        .Name = Players(A).Name
                         If Len(.Name) < 2 Then .Name = "null2523"
                         .Reason = Reason
                         .Banner = Banner
-                        .ComputerID = Player(A).ComputerID
-                        .IPAddress = Player(A).IP
+                        .ComputerID = Players(A).ComputerID
+                        .IPAddress = Players(A).IP
                         .InUse = True
                         .UnbanDate = CLng(Date) + NumDays
                         BanRS.Seek "=", C
@@ -87,7 +87,7 @@ Function BanPlayer(A As Long, Index As Long, NumDays As Long, Reason As String, 
                         BanRS!IPAddress = .IPAddress
                         BanRS.Update
                         SendSocket A, Chr$(67) + Chr$(Index) + .Reason
-                        If Player(A).Mode = modePlaying Then
+                        If Players(A).Mode = modePlaying Then
                             SendAllBut A, Chr$(66) + Chr$(A) + Chr$(Index) + .Reason
                         End If
                         AddSocketQue A
@@ -105,7 +105,7 @@ Sub BootPlayer(A As Long, Index As Long, Reason As String)
         If CloseSocketQue(D) = A Then Exit Sub
     Next D
 
-    With Player(A)
+    With Players(A)
         If .InUse = True And Not .Access = 4 Then
             If Reason <> "" Then
                 SendSocket A, Chr$(67) + Chr$(Index) + Reason
@@ -129,9 +129,9 @@ Sub BootPlayer(A As Long, Index As Long, Reason As String)
 End Sub
 
 Sub Hacker(Index As Long, Code As String)
-    BanPlayer Index, 0, 3, "Possible Hacking Attempt: Code '" + Code + "' from IP '" + Player(Index).IP + "'", "Server"
-    PrintLog Player(Index).Name & "    Possible Hacking Attempt: Code '" + Code + "' from IP '" + Player(Index).IP + "'"
-    PrintCheat Player(Index).Name & "    Possible Hacking Attempt: Code '" + Code + "' from IP '" + Player(Index).IP + "'"
+    BanPlayer Index, 0, 3, "Possible Hacking Attempt: Code '" + Code + "' from IP '" + Players(Index).IP + "'", "Server"
+    PrintLog Players(Index).Name & "    Possible Hacking Attempt: Code '" + Code + "' from IP '" + Players(Index).IP + "'"
+    PrintCheat Players(Index).Name & "    Possible Hacking Attempt: Code '" + Code + "' from IP '" + Players(Index).IP + "'"
 End Sub
 
 Function ReadUniqID() As String
