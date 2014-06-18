@@ -4,7 +4,7 @@ Option Explicit
 'Calculates the damage a player's projectile will do
 Function ProjectileDamage(Index As Long) As Long
     Dim Durability As Long, Damage As Long, Weapon As Long, Modifier As Long
-    With Player(Index)
+    With Players(Index)
         If .EquippedObject(1).Object > 0 Then
             'Uses Weapon
             Weapon = .EquippedObject(1).Object
@@ -45,18 +45,18 @@ End Function
 
 Sub ProjectileAttackPlayer(Index As Long, A As Long)
     Dim B As Long, C As Long, F As Long, St As String, X As Long
-    With Player(Index)
+    With Players(Index)
         If .IsDead = False Then
-            If ExamineBit(Map(.Map).flags, 0) = False And Not Map(.Map).Tile(Player(A).X, Player(A).Y).Att = 6 And Not Map(.Map).Tile(.X, .Y).Att = 6 Then
-                If A >= 1 And A <= MaxUsers And Player(A).IsDead = False Then
-                    If Player(A).Mode = modePlaying And Player(A).Map = .Map Then
+            If ExamineBit(Map(.Map).flags, 0) = False And Not Map(.Map).Tile(Players(A).X, Players(A).Y).Att = 6 And Not Map(.Map).Tile(.X, .Y).Att = 6 Then
+                If A >= 1 And A <= MaxUsers And Players(A).IsDead = False Then
+                    If Players(A).Mode = modePlaying And Players(A).Map = .Map Then
                         If .Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
-                            If Player(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
+                            If Players(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
                                 '@script ATTACKPLAYER
                                 Parameter(0) = Index
                                 Parameter(1) = A
                                 If RunScript("ATTACKPLAYER") = 0 Then
-                                    With Player(A)
+                                    With Players(A)
                                         B = 0
                                         C = PlayerArmor(A, ProjectileDamage(Index))
                                         If C < 0 Then C = 0
@@ -69,36 +69,36 @@ Sub ProjectileAttackPlayer(Index As Long, A As Long)
                                     End With
                                     SendSocket A, Chr$(49) + Chr$(B) + Chr$(Index) + Chr$(C)
                                     If B = 1 Then
-                                        St = DoubleChar$(4) + Chr$(117) + Chr$(Player(A).X) + Chr$(Player(A).Y) + Chr$(1)
+                                        St = DoubleChar$(4) + Chr$(117) + Chr$(Players(A).X) + Chr$(Players(A).Y) + Chr$(1)
                                     Else
-                                        St = DoubleChar$(5) + Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Player(A).X) + Chr$(Player(A).Y)
+                                        St = DoubleChar$(5) + Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Players(A).X) + Chr$(Players(A).Y)
                                     End If
                                     SendToMapRaw CLng(.Map), St
-                                    If Player(A).HP = 0 Then
+                                    If Players(A).HP = 0 Then
                                         '@script KILLPLAYER
                                         Parameter(0) = Index
                                         Parameter(1) = A
                                         If RunScript("KILLPLAYER") = 0 Then
     
-                                            If ExamineBit(Map(Player(Index).Map).flags, 7) = False Then
-                                                If Player(Index).Guild > 0 And Player(A).Guild > 0 Then
+                                            If ExamineBit(Map(Players(Index).Map).flags, 7) = False Then
+                                                If Players(Index).Guild > 0 And Players(A).Guild > 0 Then
                                                     Guild(.Guild).Kills = Guild(.Guild).Kills + 1
                                                     Guild(.Guild).Member(.GuildSlot).Kills = Guild(.Guild).Member(.GuildSlot).Kills + 1
                                                     For X = 0 To DeclarationCount
-                                                        If Guild(.Guild).Declaration(X).Guild = Player(A).Guild And Guild(.Guild).Declaration(X).Type = 1 Then
+                                                        If Guild(.Guild).Declaration(X).Guild = Players(A).Guild And Guild(.Guild).Declaration(X).Type = 1 Then
                                                             Guild(.Guild).Declaration(X).Kills = Guild(.Guild).Declaration(X).Kills + 1
                                                         End If
                                                     Next X
                                                     Guild(.Guild).UpdateFlag = True
     
-                                                    Guild(Player(A).Guild).Deaths = Guild(Player(A).Guild).Deaths + 1
-                                                    Guild(Player(A).Guild).Member(Player(A).GuildSlot).Deaths = Guild(Player(A).Guild).Member(Player(A).GuildSlot).Deaths + 1
+                                                    Guild(Players(A).Guild).Deaths = Guild(Players(A).Guild).Deaths + 1
+                                                    Guild(Players(A).Guild).Member(Players(A).GuildSlot).Deaths = Guild(Players(A).Guild).Member(Players(A).GuildSlot).Deaths + 1
                                                     For X = 0 To DeclarationCount
-                                                        If Guild(Player(A).Guild).Declaration(X).Guild = .Guild And Guild(Player(A).Guild).Declaration(X).Type = 1 Then
-                                                            Guild(Player(A).Guild).Declaration(X).Deaths = Guild(Player(A).Guild).Declaration(X).Deaths + 1
+                                                        If Guild(Players(A).Guild).Declaration(X).Guild = .Guild And Guild(Players(A).Guild).Declaration(X).Type = 1 Then
+                                                            Guild(Players(A).Guild).Declaration(X).Deaths = Guild(Players(A).Guild).Declaration(X).Deaths + 1
                                                         End If
                                                     Next X
-                                                    Guild(Player(A).Guild).UpdateFlag = True
+                                                    Guild(Players(A).Guild).UpdateFlag = True
                                                 End If
                                             End If
     
@@ -107,15 +107,15 @@ Sub ProjectileAttackPlayer(Index As Long, A As Long)
                                             SendAllButBut Index, A, Chr$(61) + Chr$(A) + Chr$(Index)    'Player was killed by player
                                             SendSocket Index, Chr$(45) + Chr$(A) + QuadChar(.Experience)    'You Killed Player
     
-                                            F = Player(A).Experience
-                                            B = Player(A).Status
+                                            F = Players(A).Experience
+                                            B = Players(A).Status
                                             If PlayerDied(A, Index) = True Then
                                                 If Not A = Index Then
                                                     If B <> 1 Then
                                                         .Status = 1
                                                     End If
-                                                    F = F - Player(A).Experience
-                                                    If Player(A).Level > 80 And Player(Index).Level > 80 Then
+                                                    F = F - Players(A).Experience
+                                                    If Players(A).Level > 80 And Players(Index).Level > 80 Then
                                                         GainEliteExp Index, F
                                                     Else
                                                         GainExp Index, F
@@ -145,7 +145,7 @@ End Sub
 
 Sub ProjectileAttackMonster(Index As Long, A As Long)
     Dim B As Long, C As Long, D As Long, E As Long
-    With Player(Index)
+    With Players(Index)
         If .IsDead = False Then
             If ExamineBit(Map(.Map).flags, 5) = False Then
                 If A <= MaxMonsters Then
@@ -167,12 +167,12 @@ Sub ProjectileAttackMonster(Index As Long, A As Long)
                                 If .HP > C Then
                                     .HP = .HP - C
 
-                                    SendToMap Player(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
+                                    SendToMap Players(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
                                 Else
-                                    SendToMap Player(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
+                                    SendToMap Players(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
 
                                     'Monster Died
-                                    SendToMapAllBut Player(Index).Map, Index, Chr$(39) + Chr$(A)    'Monster Died
+                                    SendToMapAllBut Players(Index).Map, Index, Chr$(39) + Chr$(A)    'Monster Died
 
                                     'Experience
                                     If ExamineBit(Monster(.Monster).flags, 4) = False Then
@@ -181,12 +181,12 @@ Sub ProjectileAttackMonster(Index As Long, A As Long)
                                         GainEliteExp Index, CLng(Monster(.Monster).Experience)
                                     End If
                                     
-                                    SendSocket Index, Chr$(51) + Chr$(A) + QuadChar(Player(Index).Experience)    'You killed monster
+                                    SendSocket Index, Chr$(51) + Chr$(A) + QuadChar(Players(Index).Experience)    'You killed monster
 
                                     D = Int(Rnd * 3)
                                     E = Monster(.Monster).Object(D)
                                     If E > 0 Then
-                                        NewMapObject CLng(Player(Index).Map), E, Monster(.Monster).Value(D), CLng(.X), CLng(.Y), False
+                                        NewMapObject CLng(Players(Index).Map), E, Monster(.Monster).Value(D), CLng(.X), CLng(.Y), False
                                     End If
 
                                     '@script MONSTERDIE
@@ -210,18 +210,18 @@ End Sub
 
 Sub MagicAttackPlayer(Index As Long, A As Long, MagicDamage As Long)
     Dim B As Long, C As Long, F As Long, St As String, X As Long
-    With Player(Index)
+    With Players(Index)
         If .IsDead = False Then
-            If ExamineBit(Map(.Map).flags, 0) = False And Not Map(.Map).Tile(Player(A).X, Player(A).Y).Att = 6 And Not Map(.Map).Tile(.X, .Y).Att = 6 Then
-                If A >= 1 And A <= MaxUsers And Player(A).IsDead = False Then
-                    If Player(A).Mode = modePlaying And Player(A).Map = .Map Then
+            If ExamineBit(Map(.Map).flags, 0) = False And Not Map(.Map).Tile(Players(A).X, Players(A).Y).Att = 6 And Not Map(.Map).Tile(.X, .Y).Att = 6 Then
+                If A >= 1 And A <= MaxUsers And Players(A).IsDead = False Then
+                    If Players(A).Mode = modePlaying And Players(A).Map = .Map Then
                         If .Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
-                            If Player(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
+                            If Players(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
                                 '@script ATTACKPLAYER
                                 Parameter(0) = Index
                                 Parameter(1) = A
                                 If RunScript("ATTACKPLAYER") = 0 Then
-                                    With Player(A)
+                                    With Players(A)
                                         B = 0
                                         MagicDamage = MagicDamage + (World.StatConcentration)
                                         C = MagicArmor(A, MagicDamage)
@@ -235,36 +235,36 @@ Sub MagicAttackPlayer(Index As Long, A As Long, MagicDamage As Long)
                                     End With
                                     SendSocket A, Chr$(49) + Chr$(B) + Chr$(Index) + Chr$(C)
                                     If B = 1 Then
-                                        St = DoubleChar$(4) + Chr$(117) + Chr$(Player(A).X) + Chr$(Player(A).Y) + Chr$(1)
+                                        St = DoubleChar$(4) + Chr$(117) + Chr$(Players(A).X) + Chr$(Players(A).Y) + Chr$(1)
                                     Else
-                                        St = DoubleChar$(5) + Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Player(A).X) + Chr$(Player(A).Y)
+                                        St = DoubleChar$(5) + Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Players(A).X) + Chr$(Players(A).Y)
                                     End If
                                     SendToMapRaw CLng(.Map), St
-                                    If Player(A).HP = 0 Then
+                                    If Players(A).HP = 0 Then
                                         '@script KILLPLAYER
                                         Parameter(0) = Index
                                         Parameter(1) = A
                                         If RunScript("KILLPLAYER") = 0 Then
     
-                                            If ExamineBit(Map(Player(Index).Map).flags, 7) = False Then
-                                                If Player(Index).Guild > 0 And Player(A).Guild > 0 Then
+                                            If ExamineBit(Map(Players(Index).Map).flags, 7) = False Then
+                                                If Players(Index).Guild > 0 And Players(A).Guild > 0 Then
                                                     Guild(.Guild).Kills = Guild(.Guild).Kills + 1
                                                     Guild(.Guild).Member(.GuildSlot).Kills = Guild(.Guild).Member(.GuildSlot).Kills + 1
                                                     For X = 0 To DeclarationCount
-                                                        If Guild(.Guild).Declaration(X).Guild = Player(A).Guild And Guild(.Guild).Declaration(X).Type = 1 Then
+                                                        If Guild(.Guild).Declaration(X).Guild = Players(A).Guild And Guild(.Guild).Declaration(X).Type = 1 Then
                                                             Guild(.Guild).Declaration(X).Kills = Guild(.Guild).Declaration(X).Kills + 1
                                                         End If
                                                     Next X
                                                     Guild(.Guild).UpdateFlag = True
     
-                                                    Guild(Player(A).Guild).Deaths = Guild(Player(A).Guild).Deaths + 1
-                                                    Guild(Player(A).Guild).Member(Player(A).GuildSlot).Deaths = Guild(Player(A).Guild).Member(Player(A).GuildSlot).Deaths + 1
+                                                    Guild(Players(A).Guild).Deaths = Guild(Players(A).Guild).Deaths + 1
+                                                    Guild(Players(A).Guild).Member(Players(A).GuildSlot).Deaths = Guild(Players(A).Guild).Member(Players(A).GuildSlot).Deaths + 1
                                                     For X = 0 To DeclarationCount
-                                                        If Guild(Player(A).Guild).Declaration(X).Guild = .Guild And Guild(Player(A).Guild).Declaration(X).Type = 1 Then
-                                                            Guild(Player(A).Guild).Declaration(X).Deaths = Guild(Player(A).Guild).Declaration(X).Deaths + 1
+                                                        If Guild(Players(A).Guild).Declaration(X).Guild = .Guild And Guild(Players(A).Guild).Declaration(X).Type = 1 Then
+                                                            Guild(Players(A).Guild).Declaration(X).Deaths = Guild(Players(A).Guild).Declaration(X).Deaths + 1
                                                         End If
                                                     Next X
-                                                    Guild(Player(A).Guild).UpdateFlag = True
+                                                    Guild(Players(A).Guild).UpdateFlag = True
                                                 End If
                                             End If
     
@@ -273,14 +273,14 @@ Sub MagicAttackPlayer(Index As Long, A As Long, MagicDamage As Long)
                                             SendSocket Index, Chr$(45) + Chr$(A) + QuadChar(.Experience)    'You Killed Player
                                             SendAllButBut Index, A, Chr$(61) + Chr$(A) + Chr$(Index)    'Player was killed by player
     
-                                            F = Player(A).Experience
-                                            B = Player(A).Status
+                                            F = Players(A).Experience
+                                            B = Players(A).Status
                                             If PlayerDied(A, Index) = True Then
                                                 If B <> 1 Then
                                                     .Status = 1
                                                 End If
-                                                F = F - Player(A).Experience
-                                                If Player(A).Level > 80 And Player(Index).Level > 80 Then
+                                                F = F - Players(A).Experience
+                                                If Players(A).Level > 80 And Players(Index).Level > 80 Then
                                                     GainEliteExp Index, F
                                                 Else
                                                     GainExp Index, F
@@ -310,7 +310,7 @@ End Sub
 
 Sub MagicAttackMonster(Index As Long, A As Long, MagicDamage As Long)
     Dim B As Long, C As Long, D As Long, E As Long
-    With Player(Index)
+    With Players(Index)
         If .IsDead = False Then
             If ExamineBit(Map(.Map).flags, 5) = False Then
                 If A <= MaxMonsters Then
@@ -332,12 +332,12 @@ Sub MagicAttackMonster(Index As Long, A As Long, MagicDamage As Long)
                                 .TargetIsMonster = False
                                 If .HP > C Then
                                     .HP = .HP - C
-                                    SendToMap Player(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
+                                    SendToMap Players(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
                                 Else
-                                    SendToMap Player(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
+                                    SendToMap Players(Index).Map, Chr$(44) + Chr$(Index) + Chr$(B) + Chr$(A) + Chr$(C) + DoubleChar$(CLng(.HP))
 
                                     'Monster Died
-                                    SendToMapAllBut Player(Index).Map, Index, Chr$(39) + Chr$(A)    'Monster Died
+                                    SendToMapAllBut Players(Index).Map, Index, Chr$(39) + Chr$(A)    'Monster Died
 
                                     'Experience
                                     If ExamineBit(Monster(.Monster).flags, 4) = False Then
@@ -346,12 +346,12 @@ Sub MagicAttackMonster(Index As Long, A As Long, MagicDamage As Long)
                                         GainEliteExp Index, CLng(Monster(.Monster).Experience)
                                     End If
                                     
-                                    SendSocket Index, Chr$(51) + Chr$(A) + QuadChar(Player(Index).Experience)    'You killed monster
+                                    SendSocket Index, Chr$(51) + Chr$(A) + QuadChar(Players(Index).Experience)    'You killed monster
 
                                     D = Int(Rnd * 3)
                                     E = Monster(.Monster).Object(D)
                                     If E > 0 Then
-                                        NewMapObject CLng(Player(Index).Map), E, Monster(.Monster).Value(D), CLng(.X), CLng(.Y), False
+                                        NewMapObject CLng(Players(Index).Map), E, Monster(.Monster).Value(D), CLng(.X), CLng(.Y), False
                                     End If
 
                                     '@script MONSTERDIE
@@ -376,7 +376,7 @@ End Sub
 
 Function PlayerArmor(Index As Long, ByVal Damage As Long) As Long
     Dim A As Long
-    With Player(Index)
+    With Players(Index)
         If .EquippedObject(2).Object > 0 Then
             Randomize
             If Int(Rnd * 100) < statPlayerAgility Then
@@ -459,7 +459,7 @@ End Function
 
 Function MagicArmor(Index As Long, ByVal Damage As Long) As Long
     Dim A As Long, ObjNum As Long
-    With Player(Index)
+    With Players(Index)
         If .EquippedObject(2).Object > 0 Then
             Randomize
             If Int(Rnd * 100) < statPlayerAgility Then
@@ -540,7 +540,7 @@ End Function
 
 Function PlayerDamage(Index As Long) As Long
     Dim A As Long, Modifier As Long
-    With Player(Index)
+    With Players(Index)
         If .EquippedObject(1).Object > 0 Then
             If Object(.EquippedObject(1).Object).Type = 1 Then
                 'Uses Weapon
@@ -585,18 +585,18 @@ End Function
 
 Sub CombatAttackPlayer(Index As Long, A As Long, Damage As Long)
     Dim B As Long, C As Long, F As Long, St As String, X As Long
-    With Player(Index)
+    With Players(Index)
         If .IsDead = False Then
-            If ExamineBit(Map(.Map).flags, 0) = False And Not Map(.Map).Tile(Player(A).X, Player(A).Y).Att = 6 And Not Map(.Map).Tile(.X, .Y).Att = 6 Then
-                If A >= 1 And A <= MaxUsers And Player(A).IsDead = False Then
-                    If Player(A).Mode = modePlaying And Player(A).Map = .Map Then
+            If ExamineBit(Map(.Map).flags, 0) = False And Not Map(.Map).Tile(Players(A).X, Players(A).Y).Att = 6 And Not Map(.Map).Tile(.X, .Y).Att = 6 Then
+                If A >= 1 And A <= MaxUsers And Players(A).IsDead = False Then
+                    If Players(A).Mode = modePlaying And Players(A).Map = .Map Then
                         If .Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
-                            If Sqr((CSng(Player(A).X) - CSng(.X)) ^ 2 + (CSng(Player(A).Y) - CSng(.Y)) ^ 2) <= LagHitDistance Then
-                                If Player(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
+                            If Sqr((CSng(Players(A).X) - CSng(.X)) ^ 2 + (CSng(Players(A).Y) - CSng(.Y)) ^ 2) <= LagHitDistance Then
+                                If Players(A).Guild > 0 Or ExamineBit(Map(.Map).flags, 6) = True Then
                                     Parameter(0) = Index
                                     Parameter(1) = A
                                     If RunScript("AttackPlayer") = 0 Then
-                                        With Player(A)
+                                        With Players(A)
                                             C = PlayerArmor(A, Damage)
                                             If C < 0 Then C = 0
                                             If C > 255 Then C = 255
@@ -610,36 +610,36 @@ Sub CombatAttackPlayer(Index As Long, A As Long, Damage As Long)
                                         SendSocket A, Chr$(49) + Chr$(Index) + Chr$(C)
                                         SendSocket Index, Chr$(43) + Chr$(B) + Chr$(A) + Chr$(C)
                                         If B = 1 Then
-                                            St = DoubleChar$(4) + Chr$(117) + Chr$(Player(A).X) + Chr$(Player(A).Y) + Chr$(1)
+                                            St = DoubleChar$(4) + Chr$(117) + Chr$(Players(A).X) + Chr$(Players(A).Y) + Chr$(1)
                                         Else
-                                            St = DoubleChar$(5) + Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Player(A).X) + Chr$(Player(A).Y)
+                                            St = DoubleChar$(5) + Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Players(A).X) + Chr$(Players(A).Y)
                                         End If
                                         St = St + vbNullChar + Chr$(2) + Chr$(45) + Chr$(Index)
                                         SendToMapRaw CLng(.Map), St
-                                        If Player(A).HP = 0 Then
+                                        If Players(A).HP = 0 Then
                                             Parameter(0) = Index
                                             Parameter(1) = A
                                             If RunScript("KILLPLAYER") = 0 Then
     
-                                                If ExamineBit(Map(Player(Index).Map).flags, 7) = False Then
-                                                    If Player(Index).Guild > 0 And Player(A).Guild > 0 Then
+                                                If ExamineBit(Map(Players(Index).Map).flags, 7) = False Then
+                                                    If Players(Index).Guild > 0 And Players(A).Guild > 0 Then
                                                         Guild(.Guild).Kills = Guild(.Guild).Kills + 1
                                                         Guild(.Guild).Member(.GuildSlot).Kills = Guild(.Guild).Member(.GuildSlot).Kills + 1
                                                         For X = 0 To DeclarationCount
-                                                            If Guild(.Guild).Declaration(X).Guild = Player(A).Guild And Guild(.Guild).Declaration(X).Type = 1 Then
+                                                            If Guild(.Guild).Declaration(X).Guild = Players(A).Guild And Guild(.Guild).Declaration(X).Type = 1 Then
                                                                 Guild(.Guild).Declaration(X).Kills = Guild(.Guild).Declaration(X).Kills + 1
                                                             End If
                                                         Next X
                                                         Guild(.Guild).UpdateFlag = True
     
-                                                        Guild(Player(A).Guild).Deaths = Guild(Player(A).Guild).Deaths + 1
-                                                        Guild(Player(A).Guild).Member(Player(A).GuildSlot).Deaths = Guild(Player(A).Guild).Member(Player(A).GuildSlot).Deaths + 1
+                                                        Guild(Players(A).Guild).Deaths = Guild(Players(A).Guild).Deaths + 1
+                                                        Guild(Players(A).Guild).Member(Players(A).GuildSlot).Deaths = Guild(Players(A).Guild).Member(Players(A).GuildSlot).Deaths + 1
                                                         For X = 0 To DeclarationCount
-                                                            If Guild(Player(A).Guild).Declaration(X).Guild = .Guild And Guild(Player(A).Guild).Declaration(X).Type = 1 Then
-                                                                Guild(Player(A).Guild).Declaration(X).Deaths = Guild(Player(A).Guild).Declaration(X).Deaths + 1
+                                                            If Guild(Players(A).Guild).Declaration(X).Guild = .Guild And Guild(Players(A).Guild).Declaration(X).Type = 1 Then
+                                                                Guild(Players(A).Guild).Declaration(X).Deaths = Guild(Players(A).Guild).Declaration(X).Deaths + 1
                                                             End If
                                                         Next X
-                                                        Guild(Player(A).Guild).UpdateFlag = True
+                                                        Guild(Players(A).Guild).UpdateFlag = True
                                                     End If
                                                 End If
     
@@ -648,14 +648,14 @@ Sub CombatAttackPlayer(Index As Long, A As Long, Damage As Long)
                                                 SendSocket Index, Chr$(45) + Chr$(A) + QuadChar(.Experience)    'You Killed Player
                                                 SendAllButBut Index, A, Chr$(61) + Chr$(A) + Chr$(Index)    'Player was killed by player
     
-                                                F = Player(A).Experience
-                                                B = Player(A).Status
+                                                F = Players(A).Experience
+                                                B = Players(A).Status
                                                 If PlayerDied(A, Index) = True Then
                                                     If B <> 1 Then
                                                         .Status = 1
                                                     End If
-                                                    F = F - Player(A).Experience
-                                                    If Player(A).Level > 80 And Player(Index).Level > 80 Then
+                                                    F = F - Players(A).Experience
+                                                    If Players(A).Level > 80 And Players(Index).Level > 80 Then
                                                         GainEliteExp Index, F
                                                     Else
                                                         GainExp Index, F
@@ -689,19 +689,19 @@ End Sub
 Sub SendHPUpdate(PlayerIndex As Long)
     Dim OtherPlayer As Long
     
-    With Player(PlayerIndex)
+    With Players(PlayerIndex)
         If .Guild > 0 Then
             For OtherPlayer = 1 To MaxUsers
                 If Not OtherPlayer = PlayerIndex Then
-                    If Player(OtherPlayer).InUse = True Then
-                        If Player(OtherPlayer).Map = .Map Then
-                            If Player(OtherPlayer).Guild > 0 Then
-                                If (Player(OtherPlayer).Guild = .Guild Or IsGuildAlly(.Guild, Player(OtherPlayer).Guild) = True) Then
+                    If Players(OtherPlayer).InUse = True Then
+                        If Players(OtherPlayer).Map = .Map Then
+                            If Players(OtherPlayer).Guild > 0 Then
+                                If (Players(OtherPlayer).Guild = .Guild Or IsGuildAlly(.Guild, Players(OtherPlayer).Guild) = True) Then
                                     SendSocket OtherPlayer, Chr$(150) + Chr$(PlayerIndex) + Chr$(.HP)
                                 End If
                             End If
 
-                            If Player(OtherPlayer).Access > 0 Then
+                            If Players(OtherPlayer).Access > 0 Then
                                 SendSocket OtherPlayer, Chr$(150) + Chr$(PlayerIndex) + Chr$(.HP)
                             End If
                         End If
@@ -731,11 +731,11 @@ End Function
 Function FindProjectileDamageSlot(Index As Long) As Long
     Dim InvIndex As Long
     For InvIndex = 1 To 20
-        If Player(Index).ProjectileDamage(InvIndex).Live = False Then
+        If Players(Index).ProjectileDamage(InvIndex).Live = False Then
             FindProjectileDamageSlot = InvIndex
             Exit Function
         Else
-            If Player(Index).ProjectileDamage(InvIndex).ShootTime + 10000 < getTime Then
+            If Players(Index).ProjectileDamage(InvIndex).ShootTime + 10000 < getTime Then
                 FindProjectileDamageSlot = InvIndex
                 Exit Function
             End If

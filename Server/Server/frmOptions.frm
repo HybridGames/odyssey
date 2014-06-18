@@ -1174,7 +1174,7 @@ Private Sub btnOk_Click()
     DataRS.Update
 
     For A = 1 To MaxUsers
-        If Player(A).Mode > 0 Then
+        If Players(A).Mode > 0 Then
             SendServerOptions A
             CalculateStats A
         End If

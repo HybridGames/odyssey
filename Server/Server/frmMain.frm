@@ -261,7 +261,7 @@ End Sub
 Private Sub cmdCloseConnections_Click()
     Dim A As Long
     For A = 1 To MaxUsers
-        If Player(A).InUse = True Then
+        If Players(A).InUse = True Then
             CloseClientSocket A
         End If
     Next A
@@ -762,8 +762,8 @@ Private Sub MapTimer_Timer()
     Tick = getTime()
 
     For H = 1 To GetMaxUsers
-        MapNum = Player(H).Map
-        If Player(H).InUse = True Then
+        MapNum = Players(H).Map
+        If Players(H).InUse = True Then
             If MapNum > 0 Then
                 With Map(MapNum)
                     If Not .LastUpdate = Tick Then
@@ -832,15 +832,15 @@ Private Sub MinuteTimer_Timer()
             BackupCounter = 0
             'Backup Server Data
             For A = 1 To MaxUsers
-                If Player(A).Mode = modePlaying Then
+                If Players(A).Mode = modePlaying Then
                     SavePlayerData A
-                    If Player(A).SpeedStrikes > 0 Then
-                        Player(A).SpeedStrikes = Player(A).SpeedStrikes - 1
+                    If Players(A).SpeedStrikes > 0 Then
+                        Players(A).SpeedStrikes = Players(A).SpeedStrikes - 1
                     End If
                     If Len(Player(A).Email) < 2 Then
                         SendSocket A, Chr$(16) + Chr$(47)
                     End If
-                    If Player(A).Access > 0 Then
+                    If Players(A).Access > 0 Then
                         'Server is being backed up message for gods
                         SendSocket A, Chr$(16) + Chr$(48)
                     End If
@@ -879,7 +879,7 @@ Private Sub MinuteTimer_Timer()
 
         'Backup Server Data
         For A = 1 To MaxUsers
-            If Player(A).Mode = modePlaying Then
+            If Players(A).Mode = modePlaying Then
                 SavePlayerData A
             End If
         Next A
@@ -985,7 +985,7 @@ Private Sub mnuAddGod_Click()
     A = FindPlayer(InputBox$("Enter the name of a person ingame in which you would like to change their access: ", "Enter Player Name"))
     B = Val(InputBox$("Enter a numerical number between 0 and 3 in which the selected player's new access shall be (1 = Crowd Control (Boot, Ban, Warp), 2 = God (Scripting, Mapping, Editing), 3 = Super Admin (access to locked features): ", "Enter Access"))
     If A >= 1 And A <= MaxUsers And B >= 0 And B <= 3 Then
-        With Player(A)
+        With Players(A)
             .Access = B
             SendSocket A, Chr$(65) + Chr$(B)
             If .Access > 0 Then
@@ -994,7 +994,7 @@ Private Sub mnuAddGod_Click()
                 MsgBox "Added God Successfully!", vbExclamation + vbOKOnly, "Added Successfully"
             Else
                 SendToMap .Map, Chr$(91) + Chr$(A) + Chr$(0)
-                Player(A).Status = 0
+                Players(A).Status = 0
                 MsgBox "Successfully removed god account!", vbOKOnly, "Removed God"
             End If
         End With
@@ -1697,7 +1697,7 @@ Private Sub PlayerTimer_Timer()
     Tick = getTime
 
     For PlayerNum = 1 To MaxUsers
-        With Player(PlayerNum)
+        With Players(PlayerNum)
             If .InUse = True Then
                 St1 = ""
                 If .IsDead = True Then
@@ -1847,9 +1847,9 @@ Private Sub PlayerTimer_Timer()
 
 LogDatShit:
     If PlayerNum > 0 Then
-        SendToGods Chr$(56) + Chr$(7) + "WARNING:  Server Crashed on Player Timer from " & Player(PlayerNum).Name & "  DATA:  " & Err.Description
-        PrintLog "WARNING:  Server Crashed on Player Timer from " & Player(PlayerNum).Name & "  DATA:  " & Err.Description
-        PrintDebug "WARNING:  Server Crashed on Player Timer from " & Player(PlayerNum).Name & "  DATA:  " & Err.Description
+        SendToGods Chr$(56) + Chr$(7) + "WARNING:  Server Crashed on Player Timer from " & Players(PlayerNum).Name & "  DATA:  " & Err.Description
+        PrintLog "WARNING:  Server Crashed on Player Timer from " & Players(PlayerNum).Name & "  DATA:  " & Err.Description
+        PrintDebug "WARNING:  Server Crashed on Player Timer from " & Players(PlayerNum).Name & "  DATA:  " & Err.Description
         BanPlayer PlayerNum, 0, 1, "Crashed Server", "Server"
     Else
         SendToGods Chr$(56) + Chr$(7) + "WARNING:  Server Crashed on Player Timer   DATA:  " & Err.Description
@@ -1865,8 +1865,8 @@ Private Sub tmrCloseScks_Timer()
     'Wait Procedure for Sockets
     For A = 1 To MaxUsers
         If CloseSocketQue(A) > 0 Then
-            If Player(CloseSocketQue(A)).Mode = modePlaying Then
-                If Player(CloseSocketQue(A)).HP = Player(CloseSocketQue(A)).MaxHP And Player(CloseSocketQue(A)).Mana = Player(CloseSocketQue(A)).MaxMana And Player(CloseSocketQue(A)).Energy = Player(CloseSocketQue(A)).MaxEnergy Then
+            If Players(CloseSocketQue(A)).Mode = modePlaying Then
+                If Players(CloseSocketQue(A)).HP = Players(CloseSocketQue(A)).MaxHP And Players(CloseSocketQue(A)).Mana = Players(CloseSocketQue(A)).MaxMana And Players(CloseSocketQue(A)).Energy = Players(CloseSocketQue(A)).MaxEnergy Then
                     CloseClientSocket CloseSocketQue(A)
                     CloseSocketQue(A) = 0
                 End If

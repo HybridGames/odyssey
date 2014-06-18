@@ -51,12 +51,12 @@ Private Function MonsterHasNoTarget(MapNum As Long, Tick As Currency, MonsterInd
             B = .Target
             D = 1000
             For C = 1 To MaxUsers
-                If Player(C).InUse = True And Not B = C Then
-                    If Player(C).Map = MapNum And Player(C).IsDead = False Then
+                If Players(C).InUse = True And Not B = C Then
+                    If Players(C).Map = MapNum And Players(C).IsDead = False Then
                         If ExamineBit(Monster(.Monster).flags, 3) = False Then
                             'Isn't Friendly
-                            If ExamineBit(Monster(.Monster).flags, 0) = False Or Player(C).Status = 1 Then
-                                If Player(C).Access = 0 Then
+                            If ExamineBit(Monster(.Monster).flags, 0) = False Or Players(C).Status = 1 Then
+                                If Players(C).Access = 0 Then
                                     E = Sqr((CSng(.X) - CSng(Player(C).X)) ^ 2 + (CSng(.Y) - CSng(Player(C).Y)) ^ 2)
                                     If E <= Monster(.Monster).Sight Then
                                         If E < D Then
@@ -138,12 +138,12 @@ Private Function MonsterHasTarget(MapNum As Long, Tick As Currency, MonsterIndex
             'Supersight looks for closest target
             If ExamineBit(Monster(.Monster).flags, 1) = True Then
                 For C = 1 To MaxUsers
-                    If Player(C).InUse = True And Not .Target = C Then
-                        If Player(C).Map = MapNum And Player(C).IsDead = False Then
+                    If Players(C).InUse = True And Not .Target = C Then
+                        If Players(C).Map = MapNum And Players(C).IsDead = False Then
                             If ExamineBit(Monster(.Monster).flags, 3) = False Then
                                 'Isn't Friendly
-                                If ExamineBit(Monster(.Monster).flags, 0) = False Or Player(C).Status = 1 Then
-                                    If Player(C).Access = 0 Then
+                                If ExamineBit(Monster(.Monster).flags, 0) = False Or Players(C).Status = 1 Then
+                                    If Players(C).Access = 0 Then
                                         E = Sqr((CSng(.X) - CSng(Player(C).X)) ^ 2 + (CSng(.Y) - CSng(Player(C).Y)) ^ 2)
                                         If E <= Monster(.Monster).Sight Then
                                             If E < D Then
@@ -164,7 +164,7 @@ Private Function MonsterHasTarget(MapNum As Long, Tick As Currency, MonsterIndex
         End If
         Dim ValidTarget As Boolean
         If .TargetIsMonster = False Then
-            If Player(.Target).Mode = modePlaying And Player(.Target).Map = MapNum And Player(.Target).IsDead = False Then
+            If Players(.Target).Mode = modePlaying And Players(.Target).Map = MapNum And Players(.Target).IsDead = False Then
                 ValidTarget = True
             End If
         Else
@@ -185,8 +185,8 @@ Private Function MonsterHasTarget(MapNum As Long, Tick As Currency, MonsterIndex
             If .TargetIsMonster = False Then
                 F = CLng((Player(.Target).X) - C) ^ 2
                 G = CLng((Player(.Target).Y) - D) ^ 2
-                I = Player(.Target).X
-                J = Player(.Target).Y
+                I = Players(.Target).X
+                J = Players(.Target).Y
             Else
                 F = CLng((Map(MapNum).Monster(.Target).X) - C) ^ 2
                 G = CLng((Map(MapNum).Monster(.Target).Y) - D) ^ 2
@@ -244,8 +244,8 @@ Private Function MonsterHasTarget(MapNum As Long, Tick As Currency, MonsterIndex
 
             If TryToMove = False Then
                 If .TargetIsMonster = False Then
-                    C = Player(.Target).X
-                    D = Player(.Target).Y
+                    C = Players(.Target).X
+                    D = Players(.Target).Y
                 Else
                     C = Map(MapNum).Monster(.Target).X
                     D = Map(MapNum).Monster(.Target).Y
@@ -426,8 +426,8 @@ Private Function MonsterAttack(MapNum As Long, Tick As Currency, MonsterIndex As
             'Attack
             
             If .TargetIsMonster = False Then
-                C = Player(.Target).X
-                D = Player(.Target).Y
+                C = Players(.Target).X
+                D = Players(.Target).Y
             Else
                 C = Map(MapNum).Monster(.Target).X
                 D = Map(MapNum).Monster(.Target).Y
@@ -461,7 +461,7 @@ Private Function MonsterAttack(MapNum As Long, Tick As Currency, MonsterIndex As
                         SendSocket .Target, Chr$(50) + vbNullChar + Chr$(MonsterIndex) + Chr$(C)
                         St1 = St1 + DoubleChar$(5) + Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Player(.Target).X) + Chr$(Player(.Target).Y)
                         St1 = St1 + DoubleChar(2) + Chr$(41) + Chr$(MonsterIndex)
-                        With Player(.Target)
+                        With Players(.Target)
                             If C >= .HP Then
                                 Parameter(0) = Map(MapNum).Monster(MonsterIndex).Monster
                                 Parameter(1) = MonsterIndex

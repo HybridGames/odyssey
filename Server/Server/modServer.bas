@@ -187,7 +187,7 @@ End Function
 'Returns Nothing (Integer 0) if it's not found
 Function FindInvObject(Index As Long, ObjectNum As Long) As Long
     Dim InvIndex As Long
-    With Player(Index)
+    With Players(Index)
         For InvIndex = 1 To 20
             If .Inv(InvIndex).Object = ObjectNum Then
                 FindInvObject = InvIndex
@@ -207,7 +207,7 @@ Function FindPlayer(ByVal Name As String) As Long
     Name = UCase$(Name)
     Dim PlayerIndex As Long
     For PlayerIndex = 1 To MaxUsers
-        With Player(PlayerIndex)
+        With Players(PlayerIndex)
             If .InUse = True Then
                 If UCase$(.Name) = Name Then
                     FindPlayer = PlayerIndex
@@ -241,7 +241,7 @@ End Function
 'Returns 0 if none are free
 Function FreeInvNum(PlayerIndex As Long) As Long
     Dim InvIndex As Long
-    With Player(PlayerIndex)
+    With Players(PlayerIndex)
         For InvIndex = 1 To 20
             If .Inv(InvIndex).Object = 0 Then
                 FreeInvNum = InvIndex
@@ -293,7 +293,7 @@ End Function
 Function FreePlayer() As Long
     Dim PlayerIndex As Long
     For PlayerIndex = 1 To MaxUsers
-        If Player(PlayerIndex).InUse = False Then
+        If Players(PlayerIndex).InUse = False Then
             FreePlayer = PlayerIndex
             Exit Function
         End If
@@ -302,7 +302,7 @@ End Function
 
 'Grants a Player Experience
 Sub GainExp(Index As Long, Exp As Long)
-    With Player(Index)
+    With Players(Index)
         If .Level < 80 Then
             If CDbl(.Experience) + CDbl(Exp) > 2147483647# Then
                 .Experience = 2147483647
@@ -394,7 +394,7 @@ Function IsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
         Next MonsterIndex
 
         For UserIndex = 1 To MaxUsers
-            With Player(UserIndex)
+            With Players(UserIndex)
                 If .Map = MapNum Then
                     If .X = X Then
                         If .Y = Y Then
@@ -446,14 +446,14 @@ Function PlayerIsVacant(MapNum As Long, X As Long, Y As Long) As Boolean
         Next MonsterIndex
 
         For PlayerIndex = 1 To MaxUsers
-            With Player(PlayerIndex)
+            With Players(PlayerIndex)
                 If .Map = MapNum Then
                     If .X = X Then
                         If .Y = Y Then
                             If Not .Status = 25 Then
                                 If .IsDead = False Then
                                     If .Guild > 0 Then '@todo These if blocks look redundant
-                                        If Player(PlayerIndex).Guild = 0 Then
+                                        If Players(PlayerIndex).Guild = 0 Then
                                             '@todo Should comment what these bits mean
                                             If ExamineBit(Map(.Map).flags, 0) = False And ExamineBit(Map(.Map).flags, 6) = False Then
 
@@ -485,7 +485,7 @@ Sub JoinGame(Index As Long)
     
     Tick = getTime()
 
-    With Player(Index)
+    With Players(Index)
         .SpeedHackTimer = Tick - 120000
         If .Class = 0 Then
             .Mode = modeBanned
@@ -520,7 +520,7 @@ Sub JoinGame(Index As Long)
         '@todo Is this redundant with the SendAllBut call above
         For UserIndex = 1 To MaxUsers
             If UserIndex <> Index Then
-                With Player(UserIndex)
+                With Players(UserIndex)
                     If .Mode = modePlaying Then
                         St1 = St1 + DoubleChar(7 + Len(.Name)) + Chr$(6) + Chr$(UserIndex) + DoubleChar$(CLng(.Sprite)) + Chr$(.Status) + Chr$(.Guild) + Chr$(.MaxHP) + .Name
                         If Len(St1) > 1024 Then
@@ -600,7 +600,7 @@ Sub JoinMap(Index As Long)
 
     Tick = getTime
 
-    With Player(Index)
+    With Players(Index)
         MapNum = .Map
 
         If Map(MapNum).NumPlayers = 0 And Map(MapNum).ResetTimer > 0 And Tick - Map(MapNum).ResetTimer >= 120000 And ExamineBit(Map(MapNum).Flags2, 2) = 0 Then
@@ -634,8 +634,8 @@ Sub JoinMap(Index As Long)
 
         'Send Player Data
         For A = 1 To MaxUsers
-            If Player(A).Mode = modePlaying And Player(A).Map = MapNum And A <> Index Then
-                With Player(A)
+            If Players(A).Mode = modePlaying And Players(A).Map = MapNum And A <> Index Then
+                With Players(A)
                     St1 = St1 + DoubleChar(8) + Chr$(8) + Chr$(A) + Chr$(.X) + Chr$(.Y) + Chr$(.D) + DoubleChar$(CLng(.Sprite)) + Chr$(.Status)
                 End With
                 If Len(St1) > 1024 Then
@@ -692,7 +692,7 @@ End Sub
 
 'Tells a player that they've been warped
 Sub MapWarp(Index As Long)
-    With Player(Index)
+    With Players(Index)
         SendSocket Index, Chr$(147) + Chr$(.X) + Chr$(.Y) + Chr$(.D)
         SendToMapAllBut .Map, Index, Chr$(8) + Chr$(Index) + Chr$(.X) + Chr$(.Y) + Chr$(.D) + DoubleChar$(CLng(.Sprite)) + Chr$(.Status)
     End With
@@ -1115,7 +1115,7 @@ End Function
 Sub Partmap(Index As Long)
     Dim A As Long, MapNum As Long
 
-    With Player(Index)
+    With Players(Index)
         MapNum = .Map
         If MapNum > 0 Then
             
@@ -1167,8 +1167,8 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
     Dim MapNum As Long
     
     Parameter(0) = Index
-    Player(Index).IsDead = True
-    Player(Index).DeadTick = Tick + World.DeathTime * 1000
+    Players(Index).IsDead = True
+    Players(Index).DeadTick = Tick + World.DeathTime * 1000
     
     '@todo Should there be a separate Script Event for arena maps?
     If ExamineBit(Map(Player(Index).Map).flags, 7) = True Then    'Map is an arena
@@ -1183,12 +1183,12 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
     End If
     
     If Not Index = Killer Then
-        If Player(Index).Status = 1 Then Player(Index).Status = 0
+        If Players(Index).Status = 1 Then Players(Index).Status = 0
     End If
     
-    SetPlayerStatus Index, Player(Index).Status
+    SetPlayerStatus Index, Players(Index).Status
 
-    With Player(Index)
+    With Players(Index)
         St1 = vbNullString
         St2 = vbNullString
         MapNum = .Map
@@ -1219,19 +1219,19 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                             If RunScript("GETOBJ" + CStr(.Inv(A).Object)) = 0 Then
                                 Select Case Object(.Inv(A).Object).Type
                                     Case 6, 11
-                                        If Player(Killer).Inv(D).Object > 0 Then
-                                            Player(Killer).Inv(D).Value = Player(Killer).Inv(D).Value + .Inv(A).Value
+                                        If Players(Killer).Inv(D).Object > 0 Then
+                                            Players(Killer).Inv(D).Value = Players(Killer).Inv(D).Value + .Inv(A).Value
                                         Else
-                                            Player(Killer).Inv(D).Object = .Inv(A).Object
-                                            Player(Killer).Inv(D).Value = .Inv(A).Value
-                                            Player(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
-                                            Player(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
+                                            Players(Killer).Inv(D).Object = .Inv(A).Object
+                                            Players(Killer).Inv(D).Value = .Inv(A).Value
+                                            Players(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
+                                            Players(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
                                         End If
                                     Case Else
-                                        Player(Killer).Inv(D).Object = .Inv(A).Object
-                                        Player(Killer).Inv(D).Value = .Inv(A).Value
-                                        Player(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
-                                        Player(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
+                                        Players(Killer).Inv(D).Object = .Inv(A).Object
+                                        Players(Killer).Inv(D).Value = .Inv(A).Value
+                                        Players(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
+                                        Players(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
                                 End Select
                                 SendSocket Killer, Chr$(17) + Chr$(D) + DoubleChar$(CLng(Player(Killer).Inv(D).Object)) + QuadChar(Player(Killer).Inv(D).Value) + Chr$(Player(Killer).Inv(D).ItemPrefix) + Chr$(Player(Killer).Inv(D).ItemSuffix)
                                 DontDropOnGround = True
@@ -1287,19 +1287,19 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                         If RunScript("GETOBJ" + CStr(.EquippedObject(RandomDrop).Object)) = 0 Then
                             Select Case Object(.EquippedObject(RandomDrop).Object).Type
                             Case 6, 11
-                                If Player(Killer).Inv(D).Object > 0 Then
-                                    Player(Killer).Inv(D).Value = Player(Killer).Inv(D).Value + .EquippedObject(RandomDrop).Value
+                                If Players(Killer).Inv(D).Object > 0 Then
+                                    Players(Killer).Inv(D).Value = Players(Killer).Inv(D).Value + .EquippedObject(RandomDrop).Value
                                 Else
-                                    Player(Killer).Inv(D).Object = .EquippedObject(RandomDrop).Object
-                                    Player(Killer).Inv(D).Value = .EquippedObject(RandomDrop).Value
-                                    Player(Killer).Inv(D).ItemPrefix = .EquippedObject(RandomDrop).ItemPrefix
-                                    Player(Killer).Inv(D).ItemSuffix = .EquippedObject(RandomDrop).ItemSuffix
+                                    Players(Killer).Inv(D).Object = .EquippedObject(RandomDrop).Object
+                                    Players(Killer).Inv(D).Value = .EquippedObject(RandomDrop).Value
+                                    Players(Killer).Inv(D).ItemPrefix = .EquippedObject(RandomDrop).ItemPrefix
+                                    Players(Killer).Inv(D).ItemSuffix = .EquippedObject(RandomDrop).ItemSuffix
                                 End If
                             Case Else
-                                Player(Killer).Inv(D).Object = .EquippedObject(RandomDrop).Object
-                                Player(Killer).Inv(D).Value = .EquippedObject(RandomDrop).Value
-                                Player(Killer).Inv(D).ItemPrefix = .EquippedObject(RandomDrop).ItemPrefix
-                                Player(Killer).Inv(D).ItemSuffix = .EquippedObject(RandomDrop).ItemSuffix
+                                Players(Killer).Inv(D).Object = .EquippedObject(RandomDrop).Object
+                                Players(Killer).Inv(D).Value = .EquippedObject(RandomDrop).Value
+                                Players(Killer).Inv(D).ItemPrefix = .EquippedObject(RandomDrop).ItemPrefix
+                                Players(Killer).Inv(D).ItemSuffix = .EquippedObject(RandomDrop).ItemSuffix
                             End Select
                             SendSocket Killer, Chr$(17) + Chr$(D) + DoubleChar$(CLng(Player(Killer).Inv(D).Object)) + QuadChar(Player(Killer).Inv(D).Value) + Chr$(Player(Killer).Inv(D).ItemPrefix) + Chr$(Player(Killer).Inv(D).ItemSuffix)
                             DontDropOnGround = True
@@ -1351,19 +1351,19 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                                     If RunScript("GETOBJ" + CStr(.EquippedObject(A).Object)) = 0 Then
                                         Select Case Object(.EquippedObject(A).Object).Type
                                         Case 6, 11
-                                            If Player(Killer).Inv(D).Object > 0 Then
-                                                Player(Killer).Inv(D).Value = Player(Killer).Inv(D).Value + .EquippedObject(A).Value
+                                            If Players(Killer).Inv(D).Object > 0 Then
+                                                Players(Killer).Inv(D).Value = Players(Killer).Inv(D).Value + .EquippedObject(A).Value
                                             Else
-                                                Player(Killer).Inv(D).Object = .EquippedObject(A).Object
-                                                Player(Killer).Inv(D).Value = .EquippedObject(A).Value
-                                                Player(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
-                                                Player(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
+                                                Players(Killer).Inv(D).Object = .EquippedObject(A).Object
+                                                Players(Killer).Inv(D).Value = .EquippedObject(A).Value
+                                                Players(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
+                                                Players(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
                                             End If
                                         Case Else
-                                            Player(Killer).Inv(D).Object = .EquippedObject(A).Object
-                                            Player(Killer).Inv(D).Value = .EquippedObject(A).Value
-                                            Player(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
-                                            Player(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
+                                            Players(Killer).Inv(D).Object = .EquippedObject(A).Object
+                                            Players(Killer).Inv(D).Value = .EquippedObject(A).Value
+                                            Players(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
+                                            Players(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
                                         End Select
                                         SendSocket Killer, Chr$(17) + Chr$(D) + DoubleChar$(CLng(Player(Killer).Inv(D).Object)) + QuadChar(Player(Killer).Inv(D).Value) + Chr$(Player(Killer).Inv(D).ItemPrefix) + Chr$(Player(Killer).Inv(D).ItemSuffix)
                                         DontDropOnGround = True
@@ -1419,19 +1419,19 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                                 If RunScript("GETOBJ" + CStr(.EquippedObject(A).Object)) = 0 Then
                                     Select Case Object(.EquippedObject(A).Object).Type
                                     Case 6, 11
-                                        If Player(Killer).Inv(D).Object > 0 Then
-                                            Player(Killer).Inv(D).Value = Player(Killer).Inv(D).Value + .EquippedObject(A).Value
+                                        If Players(Killer).Inv(D).Object > 0 Then
+                                            Players(Killer).Inv(D).Value = Players(Killer).Inv(D).Value + .EquippedObject(A).Value
                                         Else
-                                            Player(Killer).Inv(D).Object = .EquippedObject(A).Object
-                                            Player(Killer).Inv(D).Value = .EquippedObject(A).Value
-                                            Player(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
-                                            Player(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
+                                            Players(Killer).Inv(D).Object = .EquippedObject(A).Object
+                                            Players(Killer).Inv(D).Value = .EquippedObject(A).Value
+                                            Players(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
+                                            Players(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
                                         End If
                                     Case Else
-                                        Player(Killer).Inv(D).Object = .EquippedObject(A).Object
-                                        Player(Killer).Inv(D).Value = .EquippedObject(A).Value
-                                        Player(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
-                                        Player(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
+                                        Players(Killer).Inv(D).Object = .EquippedObject(A).Object
+                                        Players(Killer).Inv(D).Value = .EquippedObject(A).Value
+                                        Players(Killer).Inv(D).ItemPrefix = .EquippedObject(A).ItemPrefix
+                                        Players(Killer).Inv(D).ItemSuffix = .EquippedObject(A).ItemSuffix
                                     End Select
                                     SendSocket Killer, Chr$(17) + Chr$(D) + DoubleChar$(CLng(Player(Killer).Inv(D).Object)) + QuadChar(Player(Killer).Inv(D).Value) + Chr$(Player(Killer).Inv(D).ItemPrefix) + Chr$(Player(Killer).Inv(D).ItemSuffix)
                                     DontDropOnGround = True
@@ -1491,19 +1491,19 @@ Function PlayerDied(Index As Long, Killer As Long) As Boolean
                                 If RunScript("GETOBJ" + CStr(.Inv(A).Object)) = 0 Then
                                     Select Case Object(.Inv(A).Object).Type
                                     Case 6, 11
-                                        If Player(Killer).Inv(D).Object > 0 Then
-                                            Player(Killer).Inv(D).Value = Player(Killer).Inv(D).Value + .Inv(A).Value
+                                        If Players(Killer).Inv(D).Object > 0 Then
+                                            Players(Killer).Inv(D).Value = Players(Killer).Inv(D).Value + .Inv(A).Value
                                         Else
-                                            Player(Killer).Inv(D).Object = .Inv(A).Object
-                                            Player(Killer).Inv(D).Value = .Inv(A).Value
-                                            Player(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
-                                            Player(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
+                                            Players(Killer).Inv(D).Object = .Inv(A).Object
+                                            Players(Killer).Inv(D).Value = .Inv(A).Value
+                                            Players(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
+                                            Players(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
                                         End If
                                     Case Else
-                                        Player(Killer).Inv(D).Object = .Inv(A).Object
-                                        Player(Killer).Inv(D).Value = .Inv(A).Value
-                                        Player(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
-                                        Player(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
+                                        Players(Killer).Inv(D).Object = .Inv(A).Object
+                                        Players(Killer).Inv(D).Value = .Inv(A).Value
+                                        Players(Killer).Inv(D).ItemPrefix = .Inv(A).ItemPrefix
+                                        Players(Killer).Inv(D).ItemSuffix = .Inv(A).ItemSuffix
                                     End Select
                                     SendSocket Killer, Chr$(17) + Chr$(D) + DoubleChar$(CLng(Player(Killer).Inv(D).Object)) + QuadChar(Player(Killer).Inv(D).Value) + Chr$(Player(Killer).Inv(D).ItemPrefix) + Chr$(Player(Killer).Inv(D).ItemSuffix)
                                     DontDropOnGround = True
@@ -1622,7 +1622,7 @@ End Sub
 '@todo Candidate for compression or is this only used once at login
 Sub SendCharacterData(Index As Long)
     Dim St As String, A As Long
-    With Player(Index)
+    With Players(Index)
         If .Class > 0 Then
             SendSocket Index, Chr$(3) + Chr$(.Class) + Chr$(.Gender) + DoubleChar$(CLng(.Sprite)) + Chr$(.Level) + Chr$(.Status) + Chr$(.Guild) + Chr$(.GuildRank) + Chr$(.Access) + Chr$(Index) + QuadChar(.Experience) + .Name + Chr$(0) + .desc
             For A = 1 To 10    'Send Skills
@@ -1725,7 +1725,7 @@ Function WindowProc(ByVal hw As Long, ByVal uMsg As Long, ByVal wParam As Long, 
 
                 NewPlayer = FreePlayer()
                 If NewPlayer > 0 Then
-                    With Player(NewPlayer)
+                    With Players(NewPlayer)
                         .Socket = accept(ListeningSocket, Address, sockaddr_size)
                         If Not .Socket = INVALID_SOCKET Then
                             SetSockLinger .Socket, 1, 0
@@ -1836,7 +1836,7 @@ End Sub
 'Clean up script for when a player disconnects
 Sub CloseClientSocket(Index As Long)
     Dim A As Long
-    With Player(Index)
+    With Players(Index)
         If .InUse = True Then
             'Decrement User Num
             NumUsers = NumUsers - 1
@@ -1898,7 +1898,7 @@ Sub CloseClientSocket(Index As Long)
                 SavePlayerData Index
             End If
 
-            PrintLog "Connection closed from " + .IP + " [" + Player(Index).Name + "]"
+            PrintLog "Connection closed from " + .IP + " [" + Players(Index).Name + "]"
 
             If .Mode = modePlaying Then SendToGods Chr$(56) + Chr$(7) + .User + " - " + .IP
             If .Access > 0 And .Mode = modePlaying Then PrintGodSilent .User, " (Left Game) "
@@ -2045,7 +2045,7 @@ End Sub
 Sub SavePlayerData(Index)
     Dim A As Long, St As String
 
-    With Player(Index)
+    With Players(Index)
         If .LastSkillUse = 69 Then Exit Sub
 
         UserRS.Index = "User"
@@ -2169,7 +2169,7 @@ End Sub
 Sub SendAll(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying Then
                 SendSocket A, St
             End If
@@ -2181,7 +2181,7 @@ End Sub
 Sub SendToConnected(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode > 0 Then
                 SendSocket A, St
             End If
@@ -2193,7 +2193,7 @@ End Sub
 Sub SendAllBut(ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And A <> Index Then
                 SendSocket A, St
             End If
@@ -2205,7 +2205,7 @@ End Sub
 Sub SendAllButRaw(ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And A <> Index Then
                 SendRaw A, St
             End If
@@ -2218,7 +2218,7 @@ End Sub
 Sub SendAllButBut(ByVal Index1 As Long, ByVal Index2 As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And A <> Index1 And A <> Index2 Then
                 SendSocket A, St
             End If
@@ -2230,7 +2230,7 @@ End Sub
 Sub SendToGods(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Access > 0 Then
                 SendSocket A, St
             End If
@@ -2242,7 +2242,7 @@ End Sub
 Sub SendToAdmins(ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Access > 2 Then
                 SendSocket A, St
             End If
@@ -2254,7 +2254,7 @@ End Sub
 Sub SendToGodsAllBut(Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Access > 0 And Index <> A Then
                 SendSocket A, St
             End If
@@ -2266,7 +2266,7 @@ End Sub
 Sub SendToMap(ByVal MapNum As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Map = MapNum Then
                 SendSocket A, St
             End If
@@ -2278,7 +2278,7 @@ End Sub
 Sub SendToMapRaw(ByVal MapNum As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Map = MapNum Then
                 SendRaw A, St
             End If
@@ -2290,7 +2290,7 @@ End Sub
 Sub ShutdownServer()
     Dim A As Long, B As Long
     For A = 1 To MaxUsers
-        If Player(A).InUse = True Then
+        If Players(A).InUse = True Then
             CloseClientSocket A
         End If
     Next A
@@ -2354,7 +2354,7 @@ End Sub
 Sub SendToMapAllBut(ByVal MapNum As Long, ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Map = MapNum And Index <> A Then
                 SendSocket A, St
             End If
@@ -2366,7 +2366,7 @@ End Sub
 Sub SendToMapAllButRaw(ByVal MapNum As Long, ByVal Index As Long, ByVal St As String)
     Dim A As Long
     For A = 1 To MaxUsers
-        With Player(A)
+        With Players(A)
             If .Mode = modePlaying And .Map = MapNum And Index <> A Then
                 SendRaw A, St
             End If
@@ -2377,7 +2377,7 @@ End Sub
 'Sends a String by Socket
 Sub SendSocket(ByVal Index As Long, ByVal St As String)
     If Index > 0 Then
-        With Player(Index)
+        With Players(Index)
             If .InUse = True Then
                 If SendData(.Socket, DoubleChar$(Len(St)) + Chr$(CheckSum(St) * 20 Mod 194) + Chr$(.ServerPacketOrder) + St) = SOCKET_ERROR Then
     
@@ -2392,7 +2392,7 @@ End Sub
 '@todo Need to review what this is used for
 Function GetSendSocket(ByVal Index As Long, ByVal St As String) As String
     Dim SendSt As String
-    With Player(Index)
+    With Players(Index)
         If .InUse = True Then
             SendSt = DoubleChar$(Len(St)) + Chr$(CheckSum(St) * 20 Mod 194) + Chr$(.ServerPacketOrder) + St
             .ServerPacketOrder = .ServerPacketOrder + 1
@@ -2404,7 +2404,7 @@ End Function
 
 'Looks like it just uses SendSocket but prepends Packet Id 170
 Sub SendRaw(ByVal Index As Long, ByVal St As String)
-    With Player(Index)
+    With Players(Index)
         If .InUse = True Then
             SendSocket Index, Chr$(170) + St
         End If
@@ -2413,7 +2413,7 @@ End Sub
 
 'The "Real" implementation of SendRaw, just sends the string with no prepending of the PacketId
 Sub SendRawReal(ByVal Index As Long, ByVal St As String)
-    With Player(Index)
+    With Players(Index)
         If .InUse = True Then
             SendData .Socket, St
         End If
@@ -2462,7 +2462,7 @@ Sub GiveStartingEQ(Index As Long)
     Dim A As Long, B As Long, C As Long
     If Index >= 1 And Index <= MaxUsers Then
 
-        With Player(Index)
+        With Players(Index)
             For A = 1 To 8
                 If World.StartObjects(A) > 0 Then
                     B = World.StartObjects(A)
@@ -2591,12 +2591,12 @@ Function GetObjectDur(ByVal Index As Long, ByVal Slot As Long) As Long
     Dim Percent As Single
     Select Case Object(Player(Index).Inv(Slot).Object).Type
     Case 1, 2, 3, 4
-        Percent = Player(Index).Inv(Slot).Value / (Object(Player(Index).Inv(Slot).Object).Data(0) * 10)
+        Percent = Players(Index).Inv(Slot).Value / (Object(Player(Index).Inv(Slot).Object).Data(0) * 10)
         Percent = Percent * 100
         If Percent > 100 Then Percent = 100
         GetObjectDur = Percent
     Case 8
-        Percent = Player(Index).Inv(Slot).Value / (Object(Player(Index).Inv(Slot).Object).Data(1) * 10)
+        Percent = Players(Index).Inv(Slot).Value / (Object(Player(Index).Inv(Slot).Object).Data(1) * 10)
         Percent = Percent * 100
         If Percent > 100 Then Percent = 100
         GetObjectDur = Percent
@@ -2617,7 +2617,7 @@ Sub CalculateStats(Index As Long)
         MagicTotal = 0
         AttackTotal = 0
 
-        With Player(Index)
+        With Players(Index)
             OldMaxHP = .MaxHP
             OldMaxEnergy = .MaxEnergy
             OldMaxMana = .MaxMana
@@ -2879,7 +2879,7 @@ End Function
 'Equips an object from the players inventory
 Sub EquipObject(Index As Long, Slot As Long)
     Dim A As Long, B As Long, C As Long, D As Long, E As Long, F As Long
-    With Player(Index)
+    With Players(Index)
         If .Inv(Slot).Object > 0 Then    'Has object
             Select Case Object(.Inv(Slot).Object).Type
             Case 1, 10
@@ -3011,7 +3011,7 @@ End Sub
 'Unequips an object
 Sub UnEquipObject(Index As Long, Slot As Long)
     Dim A As Long
-    With Player(Index)
+    With Players(Index)
         If Not Slot = 6 Then
             A = FreeInvNum(Index)
             If A > 0 And Not .EquippedObject(Slot).Object = 0 Then    'There is room
@@ -3054,7 +3054,7 @@ End Sub
 'Used in ProcessString Case 53, trade items
 Function FindUnEquipInvObject(Index As Long, ObjectNum As Long) As Long
     Dim A As Long
-    With Player(Index)
+    With Players(Index)
         For A = 1 To 20
             If .Inv(A).Object = ObjectNum Then
                 'Why would the object number = an inventory slot?
@@ -3070,7 +3070,7 @@ End Function
 'Sends a user information about their bank
 Sub SendBankData(Index As Long)
     Dim A As Long, St1 As String
-    With Player(Index)
+    With Players(Index)
         SendSocket Index, Chr$(89) & QuadChar(.Bank)
         For A = 0 To 29
             If .ItemBank(A).Object > 0 Then    'Something there
@@ -3085,7 +3085,7 @@ End Sub
 'ProcessString case 55
 Sub ProcessBankData(Index As Long, St As String)
     Dim A As Long, B As Long, C As Long, D As Long, E As Long
-    With Player(Index)
+    With Players(Index)
         Select Case Asc(Mid$(St, 1, 1))
         Case 1    'Deposit Object
             A = Asc(Mid$(St, 2, 1))    'Slot
@@ -3319,7 +3319,7 @@ End Sub
 'Repairs a specific object in inventory
 Sub RepairItem(Index As Long)
     Dim A As Long, B As Long, C As Long
-    With Player(Index)
+    With Players(Index)
         If .CurrentRepairTar <= 20 Then
             B = .Inv(.CurrentRepairTar).Object    'Object
         Else
@@ -3366,7 +3366,7 @@ End Sub
 'Repairs all objects in inventory
 Sub RepairAll(Index As Long)
     Dim A As Long
-    With Player(Index)
+    With Players(Index)
         For A = 1 To 25
             If A <= 20 Then
                 If .Inv(A).Object > 0 Then

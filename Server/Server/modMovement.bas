@@ -3,7 +3,7 @@ Option Explicit
 
 Sub ProcessMovement(Index As Long, St As String, MapNum As Long)
     Dim A As Long, B As Long, C As Long, D As Long, E As Long, F As Long, G As Long, H As Long, I As Long, J As Long
-    With Player(Index)
+    With Players(Index)
         I = .X
         J = .Y
         A = Asc(Mid$(St, 1, 1))
@@ -156,7 +156,7 @@ Sub ProcessMovement(Index As Long, St As String, MapNum As Long)
                         .Att = 4
                         .X = A
                         .Y = B
-                        .T = Player(Index).LastMsg
+                        .T = Players(Index).LastMsg
                     End With
                     Map(MapNum).Tile(A, B).Att = 0
                     SendToMap MapNum, Chr$(36) + Chr$(C) + Chr$(A) + Chr$(B)
@@ -187,7 +187,7 @@ Sub ProcessMovement(Index As Long, St As String, MapNum As Long)
                                     .Att = Map(MapNum).Tile(D, E).Att
                                     .X = D
                                     .Y = E
-                                    .T = Player(Index).LastMsg
+                                    .T = Players(Index).LastMsg
                                 End With
                                 Map(MapNum).Tile(D, E).Att = 0
                                 SendToMap MapNum, Chr$(36) + Chr$(C) + Chr$(D) + Chr$(E)
@@ -261,7 +261,7 @@ Sub ProcessMovement(Index As Long, St As String, MapNum As Long)
                         .Att = 4
                         .X = A
                         .Y = B
-                        .T = Player(Index).LastMsg
+                        .T = Players(Index).LastMsg
                     End With
                     Map(MapNum).Tile(A, B).Att = 0
                     SendToMap MapNum, Chr$(36) + Chr$(C) + Chr$(A) + Chr$(B)

@@ -3,7 +3,7 @@ Option Explicit
 
 Sub ProcessSkillData(Index As Long, St As String, Tick As Currency)
     Dim A As Long, B As Long
-    With Player(Index)
+    With Players(Index)
         If .LastSkillUse + 400 < Tick Then
             .LastSkillUse = Tick
             If .Energy >= 5 Then .Energy = .Energy - 5 Else .Energy = 0
@@ -55,7 +55,7 @@ End Sub
 
 Function GoFish(Index As Long) As Integer
     Dim A As Long, B As Long, C As Double
-    With Player(Index)
+    With Players(Index)
         A = 20 + (.Skill(1).Level / 5)
         B = Int(Rnd * 100) + 1
         If A >= B Then    'Caught a fish
@@ -82,7 +82,7 @@ End Function
 
 Function Mining(Index As Long) As Integer
     Dim A As Long, B As Long, C As Double
-    With Player(Index)
+    With Players(Index)
         A = 20 + (.Skill(2).Level / 5)
         B = Int(Rnd * 100) + 1
         If A >= B Then    'Found something
@@ -109,7 +109,7 @@ End Function
 
 Function Lumberjacking(Index As Long) As Byte
     Dim A As Long, B As Long, C As Double
-    With Player(Index)
+    With Players(Index)
         A = 20 + (.Skill(3).Level / 5)
         B = Int(Rnd * 100) + 1
         If A >= B Then    'Found something

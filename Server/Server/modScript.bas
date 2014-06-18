@@ -108,8 +108,8 @@ End Function
 Function AttackMonster(ByVal Index As Long, ByVal MonsterIndex As Long, ByVal Damage As Long) As Long
     Dim MapNum As Long, B As Long, C As Long
     If Index >= 1 And Index <= MaxUsers And MonsterIndex >= 0 And MonsterIndex <= MaxMonsters Then
-        If Player(Index).Mode = modePlaying Then
-            MapNum = Player(Index).Map
+        If Players(Index).Mode = modePlaying Then
+            MapNum = Players(Index).Map
             If Map(MapNum).Monster(MonsterIndex).Monster > 0 Then
                 ScriptRunning = False
                 Parameter(0) = Index
@@ -154,7 +154,7 @@ Function AttackMonster(ByVal Index As Long, ByVal MonsterIndex As Long, ByVal Da
 End Function
 Function AttackPlayer(ByVal Index As Long, ByVal Target As Long, ByVal Damage As Long) As Long
     If Index >= 1 And Index <= MaxUsers And Target >= 1 And Target <= MaxUsers Then
-        If Player(Index).Mode = modePlaying And Player(Target).Mode = modePlaying And Player(Target).IsDead = False Then
+        If Players(Index).Mode = modePlaying And Players(Target).Mode = modePlaying And Players(Target).IsDead = False Then
             If Damage < 0 Then Damage = 0
             If Damage > 255 Then Damage = 255
             ScriptRunning = False
@@ -167,8 +167,8 @@ End Function
 Function CanAttackMonster(ByVal Index As Long, ByVal MonsterIndex As Long) As Long
     Dim MapIndex As Long
     If Index >= 1 And Index <= MaxUsers And MonsterIndex >= 0 And MonsterIndex <= MaxMonsters Then
-        If Player(Index).Mode = modePlaying Then
-            MapIndex = Player(Index).Map
+        If Players(Index).Mode = modePlaying Then
+            MapIndex = Players(Index).Map
             If ExamineBit(Map(MapIndex).flags, 5) = False And Map(MapIndex).Monster(MonsterIndex).Monster > 0 Then
                 CanAttackMonster = True
             End If
@@ -178,14 +178,14 @@ End Function
 Function CanAttackPlayer(ByVal Player1 As Long, ByVal Player2 As Long) As Long
     Dim PKMap As Boolean
     If Player1 >= 1 And Player1 <= MaxUsers And Player2 >= 1 And Player2 <= MaxUsers Then
-        With Player(Player1)
+        With Players(Player1)
             If ExamineBit(Map(.Map).flags, 0) = False Then
-                If .Mode = modePlaying And Player(Player2).Mode = modePlaying Then
-                    If .Map = Player(Player2).Map Then
-                        If .IsDead = 0 And Player(Player2).IsDead = 0 Then
+                If .Mode = modePlaying And Players(Player2).Mode = modePlaying Then
+                    If .Map = Players(Player2).Map Then
+                        If .IsDead = 0 And Players(Player2).IsDead = 0 Then
                             PKMap = ExamineBit(Map(.Map).flags, 6)
                             If .Guild > 0 Or PKMap = True Then
-                                If Player(Player2).Guild > 0 Or PKMap = True Then
+                                If Players(Player2).Guild > 0 Or PKMap = True Then
                                     CanAttackPlayer = True
                                 End If
                             End If
@@ -227,7 +227,7 @@ End Sub
 Sub NPCTell(ByVal Index As Long, ByVal St As String)
     Dim A As Long
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 A = Map(Player(Index).Map).NPC
                 If A > 0 Then
@@ -243,7 +243,7 @@ Sub ScriptTimer(ByVal Index As Long, ByVal Seconds As Long, ByVal Script As Stri
     If Index >= 1 And Index <= MaxUsers Then
         If Seconds > 86400 Then Seconds = 86400
         If Seconds < 0 Then Seconds = 0
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 Tick = getTime
                 For A = 1 To MaxPlayerTimers
@@ -324,7 +324,7 @@ Function HasObj(ByVal Index As Long, ByVal ObjIndex As Long) As Long
     Dim A As Long, B As Long, C As Long
     If Index >= 1 And Index <= MaxUsers And ObjIndex >= 1 And ObjIndex <= MaxObjects Then
         B = Object(ObjIndex).Type
-        With Player(Index)
+        With Players(Index)
             For A = 1 To 20
                 With .Inv(A)
                     If .Object = ObjIndex Then
@@ -350,14 +350,14 @@ Function HasObj(ByVal Index As Long, ByVal ObjIndex As Long) As Long
 End Function
 Function GetPlayerName(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             GetPlayerName = NewString(.Name)
         End With
     End If
 End Function
 Function GetPlayerIP(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             GetPlayerIP = NewString(.IP)
         End With
     End If
@@ -365,14 +365,14 @@ End Function
 
 Function GetPlayerUser(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             GetPlayerUser = NewString(.User)
         End With
     End If
 End Function
 Function GetPlayerDesc(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             GetPlayerDesc = NewString(.desc)
         End With
     End If
@@ -387,7 +387,7 @@ End Function
 Function GiveObj(ByVal Index As Long, ByVal ObjIndex As Long, ByVal Amount As Long) As Long
     Dim A As Long, B As Long, C As Long
     If Index >= 1 And Index <= MaxUsers And ObjIndex >= 1 And ObjIndex <= MaxObjects Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 B = Object(ObjIndex).Type
                 If B = 6 Or B = 11 Then
@@ -436,7 +436,7 @@ End Function
 Function TakeObj(ByVal Index As Long, ByVal ObjIndex As Long, ByVal Amount As Long) As Long
     Dim A As Long
     If Index >= 1 And Index <= MaxUsers And ObjIndex >= 1 And ObjIndex <= MaxObjects Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 A = FindInvObject(Index, ObjIndex)
                 If A > 0 Then
@@ -477,7 +477,7 @@ End Sub
 
 Function IsPlaying(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        IsPlaying = Player(Index).Mode = modePlaying
+        IsPlaying = Players(Index).Mode = modePlaying
     End If
 End Function
 
@@ -554,7 +554,7 @@ End Function
 
 Sub SetPlayerSprite(ByVal Index As Long, ByVal Sprite As Long)
     If Index >= 1 And Index <= MaxUsers And Sprite >= 0 And Sprite <= MaxSprite Then
-        With Player(Index)
+        With Players(Index)
             If Sprite = 0 Then
                 If .Guild > 0 Then
                     If Guild(.Guild).Sprite > 0 Then
@@ -674,7 +674,7 @@ End Function
 
 Function GetPlayerAccess(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerAccess = Player(Index).Access
+        GetPlayerAccess = Players(Index).Access
     End If
 End Function
 Function GetPlayerAgility(ByVal Index As Long) As Long
@@ -685,12 +685,12 @@ End Function
 
 Function GetPlayerBank(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerBank = Player(Index).Bank
+        GetPlayerBank = Players(Index).Bank
     End If
 End Function
 Function GetPlayerClass(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerClass = Player(Index).Class
+        GetPlayerClass = Players(Index).Class
     End If
 End Function
 Function GetPlayerEndurance(ByVal Index As Long) As Long
@@ -700,33 +700,33 @@ Function GetPlayerEndurance(ByVal Index As Long) As Long
 End Function
 Function GetPlayerEnergy(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerEnergy = Player(Index).Energy
+        GetPlayerEnergy = Players(Index).Energy
     End If
 End Function
 Function GetPlayerEquipped(ByVal Index As Long, ByVal EquippedIndex As Long) As Long
     If Index >= 1 And Index <= MaxUsers And EquippedIndex >= 1 And EquippedIndex <= 6 Then
-        GetPlayerEquipped = Player(Index).EquippedObject(EquippedIndex).Object
+        GetPlayerEquipped = Players(Index).EquippedObject(EquippedIndex).Object
     End If
 End Function
 
 Function GetPlayerExperience(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerExperience = Player(Index).Experience
+        GetPlayerExperience = Players(Index).Experience
     End If
 End Function
 Function GetPlayerGender(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerGender = Player(Index).Gender
+        GetPlayerGender = Players(Index).Gender
     End If
 End Function
 Function GetPlayerGuild(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerGuild = Player(Index).Guild
+        GetPlayerGuild = Players(Index).Guild
     End If
 End Function
 Function GetPlayerHP(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerHP = Player(Index).HP
+        GetPlayerHP = Players(Index).HP
     End If
 End Function
 Function GetPlayerIntelligence(ByVal Index As Long) As Long
@@ -736,27 +736,27 @@ Function GetPlayerIntelligence(ByVal Index As Long) As Long
 End Function
 Function GetPlayerInvObject(ByVal Index As Long, ByVal InvIndex As Long) As Long
     If Index >= 1 And Index <= MaxUsers And InvIndex >= 1 And InvIndex <= 20 Then
-        GetPlayerInvObject = Player(Index).Inv(InvIndex).Object
+        GetPlayerInvObject = Players(Index).Inv(InvIndex).Object
     End If
 End Function
 Function GetPlayerInvValue(ByVal Index As Long, ByVal InvIndex As Long) As Long
     If Index >= 1 And Index <= MaxUsers And InvIndex >= 1 And InvIndex <= 20 Then
-        GetPlayerInvValue = Player(Index).Inv(InvIndex).Value
+        GetPlayerInvValue = Players(Index).Inv(InvIndex).Value
     End If
 End Function
 Function GetPlayerLevel(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerLevel = Player(Index).Level
+        GetPlayerLevel = Players(Index).Level
     End If
 End Function
 Function GetPlayerMana(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerMana = Player(Index).Mana
+        GetPlayerMana = Players(Index).Mana
     End If
 End Function
 Function GetPlayerMap(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 GetPlayerMap = .Map
             End If
@@ -766,47 +766,47 @@ End Function
 
 Function GetPlayerMaxEnergy(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerMaxEnergy = Player(Index).MaxEnergy
+        GetPlayerMaxEnergy = Players(Index).MaxEnergy
     End If
 End Function
 Function GetPlayerMaxHP(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerMaxHP = Player(Index).MaxHP
+        GetPlayerMaxHP = Players(Index).MaxHP
     End If
 End Function
 Function GetPlayerMaxMana(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerMaxMana = Player(Index).MaxMana
+        GetPlayerMaxMana = Players(Index).MaxMana
     End If
 End Function
 Function GetPlayerSprite(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerSprite = Player(Index).Sprite
+        GetPlayerSprite = Players(Index).Sprite
     End If
 End Function
 Function GetPlayerFlag(ByVal Index As Long, ByVal FlagNum As Long) As Long
     If Index >= 1 And Index <= MaxUsers And FlagNum >= 0 And FlagNum <= MaxPlayerFlags Then
-        GetPlayerFlag = Player(Index).Flag(FlagNum)
+        GetPlayerFlag = Players(Index).Flag(FlagNum)
     End If
 End Function
 Sub SetPlayerFlag(ByVal Index As Long, ByVal FlagNum As Long, ByVal Value As Long)
     If Index >= 1 And Index <= MaxUsers And FlagNum >= 0 And FlagNum <= MaxPlayerFlags Then
         If Value < 0 Then
-            Player(Index).Flag(FlagNum) = 0
+            Players(Index).Flag(FlagNum) = 0
             Exit Sub
         End If
-        Player(Index).Flag(FlagNum) = Value
+        Players(Index).Flag(FlagNum) = Value
     End If
 End Sub
 
 Function GetPlayerStatus(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerStatus = Player(Index).Status
+        GetPlayerStatus = Players(Index).Status
     End If
 End Function
 Function GetPlayerDirection(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerDirection = Player(Index).D
+        GetPlayerDirection = Players(Index).D
     End If
 End Function
 Function GetPlayerStrength(ByVal Index As Long) As Long
@@ -816,12 +816,12 @@ Function GetPlayerStrength(ByVal Index As Long) As Long
 End Function
 Function GetPlayerX(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerX = Player(Index).X
+        GetPlayerX = Players(Index).X
     End If
 End Function
 Function GetPlayerY(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerY = Player(Index).Y
+        GetPlayerY = Players(Index).Y
     End If
 End Function
 Function GetValue(Value As Long) As Long
@@ -878,7 +878,7 @@ ScriptCrash:
 End Function
 Sub SetPlayerEnergy(ByVal Index As Long, ByVal Energy As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If Energy > 255 Then Energy = 255
                 If Energy < 0 Then Energy = 0
@@ -890,7 +890,7 @@ Sub SetPlayerEnergy(ByVal Index As Long, ByVal Energy As Long)
 End Sub
 Sub SetPlayerName(ByVal Index As Long, ByVal Name As String)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 .Name = StrConv(Name, vbUnicode)
                 SendAll Chr$(64) + Chr$(Index) + .Name
@@ -901,7 +901,7 @@ End Sub
 
 Sub SetPlayerMana(ByVal Index As Long, ByVal Mana As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If Mana > 255 Then Mana = 255
                 If Mana < 0 Then Mana = 0
@@ -915,7 +915,7 @@ End Sub
 
 Sub SetPlayerHP(ByVal Index As Long, ByVal HP As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If HP > 255 Then HP = 255
                 If HP < 1 Then HP = 1
@@ -927,7 +927,7 @@ Sub SetPlayerHP(ByVal Index As Long, ByVal HP As Long)
 End Sub
 Sub SetPlayerBank(ByVal Index As Long, ByVal Bank As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 .Bank = Bank
             End If
@@ -937,7 +937,7 @@ End Sub
 
 Sub SetPlayerStatus(ByVal Index As Long, ByVal Status As Long)
     If Index >= 1 And Index <= MaxUsers And Status >= 0 And Status <= 100 Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 .Status = Status
                 SendToMap .Map, Chr$(91) + Chr$(Index) + Chr$(Status)
@@ -947,7 +947,7 @@ Sub SetPlayerStatus(ByVal Index As Long, ByVal Status As Long)
 End Sub
 Sub SetPlayerGuild(ByVal Index As Long, ByVal GuildIndex As Long)
     If Index >= 1 And Index <= MaxUsers And GuildIndex >= 0 And GuildIndex <= 255 Then
-        With Player(Index)
+        With Players(Index)
             If GuildIndex > 0 Then
                 If .Guild <> GuildIndex Then
                     .Guild = GuildIndex
@@ -988,7 +988,7 @@ Sub SetGuildBank(ByVal Index As Long, ByVal Bank As Long)
 End Sub
 Sub PlayerWarp(ByVal Index As Long, ByVal Map As Long, ByVal X As Long, ByVal Y As Long)
     If Index >= 1 And Index <= MaxUsers And Map >= 1 And Map <= MaxMaps And X >= 0 And X <= 11 And Y >= 0 And Y <= 11 Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If Not .Map = Map Then
                     ScriptRunning = False
@@ -1060,7 +1060,7 @@ Sub DisplayObjDur(ByVal Index As Long, ByVal ObjectNum As Long)
         Display = False
     End Select
     If Display = True Then
-        Percent = Player(Index).Inv(ObjectNum).Value / (Object(Player(Index).Inv(ObjectNum).Object).Data(0) * 10)
+        Percent = Players(Index).Inv(ObjectNum).Value / (Object(Player(Index).Inv(ObjectNum).Object).Data(0) * 10)
         Percent = Int(Percent * 100)
         If Percent > 100 Then Percent = 100
         If Percent <= 5 Then
@@ -1080,7 +1080,7 @@ End Sub
 
 Sub SetInvObjectVal(ByVal Index As Long, ByVal InvSlot As Long, ByVal NewVal As Long)
     If Index >= 1 And Index <= MaxUsers And InvSlot >= 1 And InvSlot <= 20 Then
-        Player(Index).Inv(InvSlot).Value = NewVal
+        Players(Index).Inv(InvSlot).Value = NewVal
     End If
 End Sub
 
@@ -1132,7 +1132,7 @@ Function GetPlayerMagicArmor(ByVal Index As Long, ByVal Damage As Long) As Long
 End Function
 Function ScriptMagicAttackPlayer(ByVal Index As Long, ByVal Target As Long, ByVal Damage As Long) As Long
     If Index >= 1 And Index <= MaxUsers And Target >= 1 And Target <= MaxUsers Then
-        If Player(Index).Mode = modePlaying And Player(Target).Mode = modePlaying And Player(Target).IsDead = False Then
+        If Players(Index).Mode = modePlaying And Players(Target).Mode = modePlaying And Players(Target).IsDead = False Then
             If Damage < 0 Then Damage = 0
             If Damage > 255 Then Damage = 255
             ScriptRunning = False
@@ -1145,9 +1145,9 @@ End Function
  
 Function ScriptMagicAttackMonster(ByVal Index As Long, ByVal MonsterIndex As Long, ByVal Damage As Long) As Long
     If Index >= 1 And Index <= MaxUsers And MonsterIndex >= 0 And MonsterIndex <= MaxMonsters Then
-        If Player(Index).Mode = modePlaying Then
+        If Players(Index).Mode = modePlaying Then
             Dim MapNum As Long
-            MapNum = Player(Index).Map
+            MapNum = Players(Index).Map
             If Map(MapNum).Monster(MonsterIndex).Monster > 0 Then
                 If Damage < 0 Then Damage = 0
                 If Damage > 255 Then Damage = 255
@@ -1182,12 +1182,12 @@ End Sub
 
 Sub CreatePlayerFloatText(ByVal Index As Long, ByVal Message As String, ByVal MsgColor As Long)
     MsgColor = MsgColor Mod 16
-    SendToMap Player(Index).Map, Chr$(112) + Chr$(MsgColor) + Chr$(Player(Index).X) + Chr$(Player(Index).Y) + StrConv(Message, vbUnicode)
+    SendToMap Players(Index).Map, Chr$(112) + Chr$(MsgColor) + Chr$(Player(Index).X) + Chr$(Player(Index).Y) + StrConv(Message, vbUnicode)
 End Sub
 
 Function GetPlayerGuildRank(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerGuildRank = Player(Index).GuildRank
+        GetPlayerGuildRank = Players(Index).GuildRank
     End If
 End Function
 
@@ -1200,11 +1200,11 @@ Sub CreatePlayerProjectile(ByVal Index As Long, ByVal Direction As Long, ByVal P
             
             Dim DamageArray As Long
             DamageArray = FindProjectileDamageSlot(Index)
-            Player(Index).ProjectileDamage(DamageArray).Live = True
-            Player(Index).ProjectileDamage(DamageArray).Damage = Damage
-            Player(Index).ProjectileDamage(DamageArray).ShootTime = getTime
+            Players(Index).ProjectileDamage(DamageArray).Live = True
+            Players(Index).ProjectileDamage(DamageArray).Damage = Damage
+            Players(Index).ProjectileDamage(DamageArray).ShootTime = getTime
             
-            SendToMap Player(Index).Map, Chr$(99) + Chr$(6) + Chr$(Direction) + Chr$(Player(Index).X) + Chr$(Player(Index).Y) + Chr$(ProjectileType) + Chr$(Index) + Chr$(DamageArray)
+            SendToMap Players(Index).Map, Chr$(99) + Chr$(6) + Chr$(Direction) + Chr$(Player(Index).X) + Chr$(Player(Index).Y) + Chr$(ProjectileType) + Chr$(Index) + Chr$(DamageArray)
         End If
     End If
 End Sub
@@ -1218,29 +1218,29 @@ Sub CreatePlayerMagicProjectile(ByVal Index As Long, ByVal Direction As Long, By
             
             Dim DamageArray As Long
             DamageArray = FindProjectileDamageSlot(Index)
-            Player(Index).ProjectileDamage(DamageArray).Live = True
-            Player(Index).ProjectileDamage(DamageArray).Damage = Damage
-            Player(Index).ProjectileDamage(DamageArray).ShootTime = getTime
+            Players(Index).ProjectileDamage(DamageArray).Live = True
+            Players(Index).ProjectileDamage(DamageArray).Damage = Damage
+            Players(Index).ProjectileDamage(DamageArray).ShootTime = getTime
             
-            SendToMap Player(Index).Map, Chr$(99) + Chr$(7) + Chr$(Direction) + Chr$(Player(Index).X) + Chr$(Player(Index).Y) + Chr$(ProjectileType) + Chr$(Index) + Chr$(DamageArray)
+            SendToMap Players(Index).Map, Chr$(99) + Chr$(7) + Chr$(Direction) + Chr$(Player(Index).X) + Chr$(Player(Index).Y) + Chr$(ProjectileType) + Chr$(Index) + Chr$(DamageArray)
         End If
     End If
 End Sub
 
 Function GetPlayerIsDead(ByVal Index As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
-        GetPlayerIsDead = Player(Index).IsDead
+        GetPlayerIsDead = Players(Index).IsDead
     End If
 End Function
 
 Sub SetPlayerIsDead(ByVal Index As Long, ByVal IsDead As Long)
     If Index >= 1 And Index <= MaxUsers Then
         If IsDead > 0 Then
-            Player(Index).IsDead = 1
-            Player(Index).DeadTick = getTime + 15000
+            Players(Index).IsDead = 1
+            Players(Index).DeadTick = getTime + 15000
             SendAll Chr$(120) + Chr$(Index) + Chr$(1)
         Else
-            Player(Index).IsDead = 0
+            Players(Index).IsDead = 0
             SendAll Chr$(120) + Chr$(Index)
         End If
     End If
@@ -1248,11 +1248,11 @@ End Sub
 
 Sub SetItemSuffix(ByVal Index As Long, ByVal Slot As Long, ByVal Suffix As Long)
     If Slot >= 1 And Slot <= 20 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).Inv(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).Inv(Slot).Object > 0 Then
                 Select Case Object(Player(Index).Inv(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    Player(Index).Inv(Slot).ItemSuffix = Suffix
+                    Players(Index).Inv(Slot).ItemSuffix = Suffix
                     SendSocket Index, Chr$(17) + Chr$(Slot) + DoubleChar$(CInt(Player(Index).Inv(Slot).Object)) + QuadChar(Player(Index).Inv(Slot).Value) + Chr$(Player(Index).Inv(Slot).ItemPrefix) + Chr$(Player(Index).Inv(Slot).ItemSuffix)    'New Inv Obj
                 End Select
             End If
@@ -1263,11 +1263,11 @@ End Sub
 Function GetItemSuffix(ByVal Index As Long, ByVal Slot As Long) As Long
     GetItemSuffix = 0
     If Slot >= 1 And Slot <= 20 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).Inv(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).Inv(Slot).Object > 0 Then
                 Select Case Object(Player(Index).Inv(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    GetItemSuffix = Player(Index).Inv(Slot).ItemSuffix
+                    GetItemSuffix = Players(Index).Inv(Slot).ItemSuffix
                 End Select
             End If
         End If
@@ -1276,11 +1276,11 @@ End Function
 
 Sub SetEquippedItemSuffix(ByVal Index As Long, ByVal Slot As Long, ByVal Suffix As Long)
     If Slot >= 1 And Slot <= 5 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).EquippedObject(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).EquippedObject(Slot).Object > 0 Then
                 Select Case Object(Player(Index).EquippedObject(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    Player(Index).EquippedObject(Slot).ItemSuffix = Suffix
+                    Players(Index).EquippedObject(Slot).ItemSuffix = Suffix
                     SendSocket Index, Chr$(115) + DoubleChar$(CInt(Player(Index).EquippedObject(Slot).Object)) + QuadChar(Player(Index).EquippedObject(Slot).Value) + Chr$(Player(Index).EquippedObject(Slot).ItemPrefix) + Chr$(Player(Index).EquippedObject(Slot).ItemSuffix)    'New Inv Obj
                     CalculateStats Index
                 End Select
@@ -1292,11 +1292,11 @@ End Sub
 Function GetEquippedItemSuffix(ByVal Index As Long, ByVal Slot As Long) As Long
     GetEquippedItemSuffix = 0
     If Slot >= 1 And Slot <= 5 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).EquippedObject(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).EquippedObject(Slot).Object > 0 Then
                 Select Case Object(Player(Index).EquippedObject(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    GetEquippedItemSuffix = Player(Index).EquippedObject(Slot).ItemSuffix
+                    GetEquippedItemSuffix = Players(Index).EquippedObject(Slot).ItemSuffix
                 End Select
             End If
         End If
@@ -1306,7 +1306,7 @@ End Function
 Function MonsterAttackPlayer(ByVal TheMap As Long, ByVal Monster As Long, ByVal Index As Long, ByVal Damage As Long) As Long
     Dim C As Long
     If Index >= 1 And Index <= MaxUsers And Monster >= 0 And Monster <= MaxMonsters Then
-        If Player(Index).Mode = modePlaying And Player(Index).IsDead = False And Player(Index).Map = TheMap Then
+        If Players(Index).Mode = modePlaying And Players(Index).IsDead = False And Players(Index).Map = TheMap Then
             If TheMap >= 1 And TheMap <= MaxMaps Then
                 If Map(TheMap).Monster(Monster).Monster > 0 Then
                     If Damage < 0 Then Damage = 0
@@ -1317,7 +1317,7 @@ Function MonsterAttackPlayer(ByVal TheMap As Long, ByVal Monster As Long, ByVal 
                     SendSocket Index, Chr$(50) + Chr$(0) + Chr$(Monster) + Chr$(C)
                     SendToMap TheMap, Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Player(Index).X) + Chr$(Player(Index).Y)
                     SendToMap TheMap, Chr$(41) + Chr$(Monster)
-                    With Player(Index)
+                    With Players(Index)
                         If C >= .HP Then
                             Parameter(0) = Map(.Map).Monster(Monster).Monster
                             Parameter(1) = Monster
@@ -1345,7 +1345,7 @@ End Function
 Function MonsterMagicAttackPlayer(ByVal TheMap As Long, ByVal Monster As Long, ByVal Index As Long, ByVal Damage As Long) As Long
     Dim C As Long
     If Index >= 1 And Index <= MaxUsers And Monster >= 0 And Monster <= MaxMonsters Then
-        If Player(Index).Mode = modePlaying And Player(Index).IsDead = False And Player(Index).Map = TheMap Then
+        If Players(Index).Mode = modePlaying And Players(Index).IsDead = False And Players(Index).Map = TheMap Then
             If TheMap >= 1 And TheMap <= MaxMaps Then
                 If Map(TheMap).Monster(Monster).Monster > 0 Then
                     If Damage < 0 Then Damage = 0
@@ -1356,7 +1356,7 @@ Function MonsterMagicAttackPlayer(ByVal TheMap As Long, ByVal Monster As Long, B
                     SendSocket Index, Chr$(50) + Chr$(0) + Chr$(Monster) + Chr$(C)
                     SendToMap TheMap, Chr$(111) + Chr$(12) + Chr$(C) + Chr$(Player(Index).X) + Chr$(Player(Index).Y)
                     SendToMap TheMap, Chr$(41) + Chr$(Monster)
-                    With Player(Index)
+                    With Players(Index)
                         If C >= .HP Then
                             Parameter(0) = Map(.Map).Monster(Monster).Monster
                             Parameter(1) = Monster
@@ -1383,11 +1383,11 @@ End Function
 
 Sub SetItemPrefix(ByVal Index As Long, ByVal Slot As Long, ByVal Prefix As Long)
     If Slot >= 1 And Slot <= 20 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).Inv(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).Inv(Slot).Object > 0 Then
                 Select Case Object(Player(Index).Inv(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    Player(Index).Inv(Slot).ItemPrefix = Prefix
+                    Players(Index).Inv(Slot).ItemPrefix = Prefix
                     SendSocket Index, Chr$(17) + Chr$(Slot) + DoubleChar$(CInt(Player(Index).Inv(Slot).Object)) + QuadChar(Player(Index).Inv(Slot).Value) + Chr$(Player(Index).Inv(Slot).ItemPrefix) + Chr$(Player(Index).Inv(Slot).ItemSuffix)    'New Inv Obj
                 End Select
             End If
@@ -1398,11 +1398,11 @@ End Sub
 Function GetItemPrefix(ByVal Index As Long, ByVal Slot As Long) As Long
     GetItemPrefix = 0
     If Slot >= 1 And Slot <= 20 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).Inv(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).Inv(Slot).Object > 0 Then
                 Select Case Object(Player(Index).Inv(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    GetItemPrefix = Player(Index).Inv(Slot).ItemPrefix
+                    GetItemPrefix = Players(Index).Inv(Slot).ItemPrefix
                 End Select
             End If
         End If
@@ -1411,11 +1411,11 @@ End Function
 
 Sub SetEquippedItemPrefix(ByVal Index As Long, ByVal Slot As Long, ByVal Prefix As Long)
     If Slot >= 1 And Slot <= 5 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).EquippedObject(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).EquippedObject(Slot).Object > 0 Then
                 Select Case Object(Player(Index).EquippedObject(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    Player(Index).EquippedObject(Slot).ItemPrefix = Prefix
+                    Players(Index).EquippedObject(Slot).ItemPrefix = Prefix
                     SendSocket Index, Chr$(115) + DoubleChar$(CInt(Player(Index).EquippedObject(Slot).Object)) + QuadChar(Player(Index).EquippedObject(Slot).Value) + Chr$(Player(Index).EquippedObject(Slot).ItemPrefix) + Chr$(Player(Index).EquippedObject(Slot).ItemSuffix)    'New Inv Obj
                     CalculateStats Index
                 End Select
@@ -1427,11 +1427,11 @@ End Sub
 Function GetEquippedItemPrefix(ByVal Index As Long, ByVal Slot As Long) As Long
     GetEquippedItemPrefix = 0
     If Slot >= 1 And Slot <= 5 Then
-        If Player(Index).Mode = modePlaying Then
-            If Player(Index).EquippedObject(Slot).Object > 0 Then
+        If Players(Index).Mode = modePlaying Then
+            If Players(Index).EquippedObject(Slot).Object > 0 Then
                 Select Case Object(Player(Index).EquippedObject(Slot).Object).Type
                 Case 1, 2, 3, 4, 7, 8, 10
-                    GetEquippedItemPrefix = Player(Index).EquippedObject(Slot).ItemPrefix
+                    GetEquippedItemPrefix = Players(Index).EquippedObject(Slot).ItemPrefix
                 End Select
             End If
         End If
@@ -1452,7 +1452,7 @@ End Function
 
 Sub SetPlayerMaxHP(ByVal Index As Long, ByVal MaxHP As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If MaxHP > 255 Then MaxHP = 255
                 If MaxHP < 1 Then MaxHP = 1
@@ -1464,7 +1464,7 @@ End Sub
 
 Sub SetPlayerMaxEnergy(ByVal Index As Long, ByVal MaxEnergy As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If MaxEnergy > 255 Then MaxEnergy = 255
                 If MaxEnergy < 1 Then MaxEnergy = 1
@@ -1476,7 +1476,7 @@ End Sub
 
 Sub SetPlayerMaxMana(ByVal Index As Long, ByVal MaxMana As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If MaxMana > 255 Then MaxMana = 255
                 If MaxMana < 1 Then MaxMana = 1
@@ -1561,7 +1561,7 @@ End Function
 
 Sub SetPlayerStrength(ByVal Index As Long, ByVal Strength As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
 
             End If
@@ -1571,7 +1571,7 @@ End Sub
 
 Sub SetPlayerEndurance(ByVal Index As Long, ByVal Endurance As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
 
             End If
@@ -1581,7 +1581,7 @@ End Sub
 
 Sub SetPlayerAgility(ByVal Index As Long, ByVal Agility As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
 
             End If
@@ -1591,7 +1591,7 @@ End Sub
 
 Sub SetPlayerIntelligence(ByVal Index As Long, ByVal Intelligence As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
             
             End If
@@ -1601,7 +1601,7 @@ End Sub
 
 Sub SetPlayerConcentration(ByVal Index As Long, ByVal Concentration As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
 
             End If
@@ -1611,7 +1611,7 @@ End Sub
 
 Sub SetPlayerConstitution(ByVal Index As Long, ByVal Constitution As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
 
             End If
@@ -1621,7 +1621,7 @@ End Sub
 
 Sub SetPlayerStamina(ByVal Index As Long, ByVal Stamina As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
 
             End If
@@ -1631,7 +1631,7 @@ End Sub
 
 Sub SetPlayerWisdom(ByVal Index As Long, ByVal Wisdom As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
 
             End If
@@ -1641,7 +1641,7 @@ End Sub
 
 Sub SetPlayerClass(ByVal Index As Long, ByVal Class As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If Class >= 1 And Class <= NumClasses Then
                     .Class = Class
@@ -1656,7 +1656,7 @@ End Sub
 
 Sub SetPlayerDirection(ByVal Index As Long, ByVal Direction As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 If Direction >= 0 And Direction <= 3 Then
                     .D = Direction
@@ -1669,7 +1669,7 @@ End Sub
 
 Sub ScriptCalculateStats(ByVal Index As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        With Player(Index)
+        With Players(Index)
             If .Mode = modePlaying Then
                 ScriptRunning = False
                 CalculateStats Index
@@ -1821,7 +1821,7 @@ End Function
 Function GetPlayerSkillLevel(ByVal Index As Long, ByVal Skill As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
         If Skill > 0 And Skill <= MaxSkill Then
-            GetPlayerSkillLevel = Player(Index).Skill(Skill).Level
+            GetPlayerSkillLevel = Players(Index).Skill(Skill).Level
         End If
     End If
 End Function
@@ -1830,7 +1830,7 @@ Sub SetPlayerSkillLevel(ByVal Index As Long, ByVal Skill As Long, ByVal Level As
     If Index >= 1 And Index <= MaxUsers Then
         If Skill <= MaxSkill Then
             If Level >= 0 And Level <= 255 Then
-                With Player(Index)
+                With Players(Index)
                     .Skill(Skill).Level = Level
                     .Skill(Skill).Experience = 0
                     SendSocket Index, Chr$(119) + Chr$(2) + Chr$(Skill) + Chr$(.Skill(Skill).Level)
@@ -1843,7 +1843,7 @@ End Sub
 Function GetPlayerMagicLevel(ByVal Index As Long, ByVal Magic As Long) As Long
     If Index >= 1 And Index <= MaxUsers Then
         If Magic > 0 And Magic <= 255 Then
-            GetPlayerMagicLevel = Player(Index).MagicLevel(Magic).Level
+            GetPlayerMagicLevel = Players(Index).MagicLevel(Magic).Level
         End If
     End If
 End Function
@@ -1852,7 +1852,7 @@ Sub SetPlayerMagicLevel(ByVal Index As Long, ByVal Magic As Long, ByVal Level As
     If Index >= 1 And Index <= MaxUsers Then
         If Magic > 0 And Magic <= 255 Then
             If Level >= 0 And Level <= 255 Then
-                With Player(Index)
+                With Players(Index)
                     .MagicLevel(Magic).Level = Level
                     .MagicLevel(Magic).Experience = 0
                     SendSocket Index, Chr$(153) + Chr$(2) + DoubleChar$(Magic) + Chr$(.MagicLevel(Magic).Level)
@@ -1864,8 +1864,8 @@ End Sub
 
 Sub GivePlayerSkillExp(ByVal Index As Long, ByVal Skill As Long, ByVal Exp As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        If Player(Index).InUse = True Then
-            With Player(Index)
+        If Players(Index).InUse = True Then
+            With Players(Index)
                 If Skill > 0 And Skill <= MaxSkill Then
                     If .Skill(Skill).Level < 255 Then
                         .Skill(Skill).Experience = .Skill(Skill).Experience + Exp
@@ -1885,8 +1885,8 @@ End Sub
 
 Sub GivePlayerMagicExp(ByVal Index As Long, ByVal Magic As Long, ByVal Exp As Long)
     If Index >= 1 And Index <= MaxUsers Then
-        If Player(Index).InUse = True Then
-            With Player(Index)
+        If Players(Index).InUse = True Then
+            With Players(Index)
                 If Magic > 0 And Magic <= 255 Then
                     If .MagicLevel(Magic).Level < 255 Then
                         .MagicLevel(Magic).Experience = .MagicLevel(Magic).Experience + Exp
